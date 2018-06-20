@@ -1,0 +1,89 @@
+scalar SmallText
+scalar MediumText
+scalar LargeText
+scalar ExtraLargeText
+scalar URLText
+scalar RegularExpression
+scalar ErrorMessage
+
+scalar Document
+scalar File
+
+scalar Date
+scalar PastDate
+scalar FutureDate
+scalar DateTime
+scalar PastDateTime
+scalar FutureDateTime
+scalar Timestamp
+
+interface Party {
+  id: ID!
+  name: String!  
+}
+
+# StorageType enumerates the different kinds of storage Lectio supports
+enum StorageType {
+  FILE_SYSTEM
+}
+
+type FileStorageConfiguration {
+  basePath : String!
+}
+
+type StorageConfiguration {
+  type: StorageType!
+  filesys : FileStorageConfiguration
+}
+
+type HarvestDirectivesConfiguration {
+  ignoreURLsRegExprs : [RegularExpression]
+  removeParamsFromURLsRegEx : [RegularExpression]
+  followHTMLRedirects : Boolean!
+}
+
+type Configuration {
+  storage: StorageConfiguration
+  harvest : HarvestDirectivesConfiguration
+  errors: [ErrorMessage]
+}
+
+type HarvestedResourceUrls {
+  original : URLText!
+  final : URLText!
+  cleaned : URLText!
+  resolved : URLText!
+}
+
+type HarvestedResource {
+  urls : HarvestedResourceUrls!
+  isHTMLRedirect : Boolean!
+  isCleaned : Boolean!
+  redirectURL : URLText
+}
+
+type IgnoredResource {
+  urls : HarvestedResourceUrls!
+  reason: String!
+}
+
+type UnharvestedResource {
+  url : URLText!
+  reason: String!
+}
+
+type HarvestedResources {
+  text: String!
+  harvested: [HarvestedResource]
+  ignored : [IgnoredResource]
+  invalid : [UnharvestedResource]
+}
+
+type Query {
+  config: Configuration
+  urlsInText(text: String!): HarvestedResources
+}
+
+type Mutation {
+  discoverURLsinText(text : String!) : HarvestedResources
+}

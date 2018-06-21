@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
-	"strings"
 
 	"github.com/lectio/lectiod/graph"
 
@@ -13,6 +12,13 @@ import (
 	"go.uber.org/zap"
 	// github.com/google/go-jsonnet
 	// github.com/rcrowley/go-metrics
+)
+
+type ConfigurationName string
+type ConfigurationsMap map[ConfigurationName]*Configuration
+
+const (
+	DefaultConfigurationName ConfigurationName = "DEFAULT"
 )
 
 type ignoreURLsRegExList []*regexp.Regexp
@@ -92,60 +98,90 @@ func urlToString(url *url.URL) string {
 	return url.String()
 }
 
-// Service is the overall GraphQL service handler
-type Service struct {
+type Configuration struct {
+	settings                  *graph.Configuration
 	store                     *FileStorage
 	contentHarvester          *harvester.ContentHarvester
-	markdown                  map[*harvester.HarvestedResourceKeys]*strings.Builder
-	serializer                harvester.HarvestedResourcesSerializer
-	config                    *graph.Configuration
-	logger                    *zap.Logger
 	ignoreURLsRegEx           ignoreURLsRegExList
 	removeParamsFromURLsRegEx cleanURLsRegExList
+}
+
+func NewConfiguration(s *Service, name ConfigurationName, store *FileStorage) *Configuration {
+	result := new(Configuration)
+	result.store = store
+
+	result.settings = new(graph.Configuration)
+	result.settings.Name = string(name)
+	result.settings.Storage.Type = graph.StorageTypeFileSystem
+	result.settings.Storage.Filesys = &store.config
+
+	result.settings.Harvest.IgnoreURLsRegExprs = []string{`^https://twitter.com/(.*?)/status/(.*)$`, `https://t.co`}
+	result.settings.Harvest.RemoveParamsFromURLsRegEx = []string{`^utm_`}
+	result.settings.Harvest.FollowHTMLRedirects = true
+	result.ConfigureContentHarvester(s)
+
+	return result
+}
+
+func (c *Configuration) Settings() *graph.Configuration {
+	return c.settings
+}
+
+// ConfigureContentHarvester uses the config parameters in Configuration().Harvest to setup the content harvester
+func (c *Configuration) ConfigureContentHarvester(s *Service) {
+	c.ignoreURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.IgnoreURLsRegExprs)
+	c.removeParamsFromURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.RemoveParamsFromURLsRegEx)
+	c.contentHarvester = harvester.MakeContentHarvester(s.logger, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)
+}
+
+// Service is the overall GraphQL service handler
+type Service struct {
+	defaultConfig *Configuration
+	configs       ConfigurationsMap
+	logger        *zap.Logger
 }
 
 // NewService creates the GraphQL driver
 func NewService(logger *zap.Logger, store *FileStorage) *Service {
 	result := new(Service)
 	result.logger = logger
-	result.store = store
-
-	result.config = new(graph.Configuration)
-	result.config.Storage = new(graph.StorageConfiguration)
-	result.config.Storage.Type = graph.StorageTypeFileSystem
-	result.config.Storage.Filesys = &store.config
-
-	result.config.Harvest = new(graph.HarvestDirectivesConfiguration)
-	result.config.Harvest.IgnoreURLsRegExprs = []string{`^https://twitter.com/(.*?)/status/(.*)$`, `https://t.co`}
-	result.config.Harvest.RemoveParamsFromURLsRegEx = []string{`^utm_`}
-	result.config.Harvest.FollowHTMLRedirects = true
-
-	result.ConfigureContentHarvester()
+	result.defaultConfig = NewConfiguration(result, DefaultConfigurationName, store)
+	result.configs = make(ConfigurationsMap)
+	result.configs[ConfigurationName(result.defaultConfig.settings.Name)] = result.defaultConfig
 	return result
 }
 
-// ConfigureContentHarvester uses the config parameters in Configuration().Harvest to setup the content harvester
-func (s *Service) ConfigureContentHarvester() {
-	s.ignoreURLsRegEx.AddSeveral(s.config, s.config.Harvest.IgnoreURLsRegExprs)
-	s.removeParamsFromURLsRegEx.AddSeveral(s.config, s.config.Harvest.RemoveParamsFromURLsRegEx)
-	s.contentHarvester = harvester.MakeContentHarvester(s.logger, s.ignoreURLsRegEx, s.removeParamsFromURLsRegEx, s.config.Harvest.FollowHTMLRedirects)
+func (s *Service) DefaultConfiguration() *Configuration {
+	return s.defaultConfig
 }
 
-// Configuration returns the active config
-func (s *Service) Configuration() *graph.Configuration {
-	return s.config
+func (s *Service) Query_configs(ctx context.Context) ([]graph.Configuration, error) {
+	result := make([]graph.Configuration, 0, len(s.configs))
+	for _, value := range s.configs {
+		result = append(result, *value.settings)
+	}
+	return result, nil
 }
 
 // Query_config implements GraphQL query endpoint
-func (s *Service) Query_config(ctx context.Context) (*graph.Configuration, error) {
-	return s.config, nil
+func (s *Service) Query_config(ctx context.Context, name string) (*graph.Configuration, error) {
+	config := s.configs[ConfigurationName(name)]
+	if config != nil {
+		return config.settings, nil
+	}
+	return nil, nil
 }
 
-func (s *Service) Query_urlsInText(ctx context.Context, text string) (*graph.HarvestedResources, error) {
+func (s *Service) Query_urlsInText(ctx context.Context, config string, text string) (*graph.HarvestedResources, error) {
+	conf := s.configs[ConfigurationName(config)]
+	if conf == nil {
+		return nil, fmt.Errorf("Unable to run query: config '%s' not found", config)
+	}
+
 	result := new(graph.HarvestedResources)
 	result.Text = text
 
-	r := s.contentHarvester.HarvestResources(text)
+	r := conf.contentHarvester.HarvestResources(text)
 	for _, res := range r.Resources {
 		isURLValid, isDestValid := res.IsValid()
 		if !isURLValid {
@@ -196,6 +232,6 @@ func (s *Service) Query_urlsInText(ctx context.Context, text string) (*graph.Har
 	return result, nil
 }
 
-func (s *Service) Mutation_discoverURLsinText(ctx context.Context, text string) (*graph.HarvestedResources, error) {
-	return s.Query_urlsInText(ctx, text)
+func (s *Service) Mutation_discoverURLsinText(ctx context.Context, config string, text string) (*graph.HarvestedResources, error) {
+	return s.Query_urlsInText(ctx, config, text)
 }

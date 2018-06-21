@@ -9,9 +9,10 @@ import (
 )
 
 type Configuration struct {
-	Storage *StorageConfiguration           `json:"storage"`
-	Harvest *HarvestDirectivesConfiguration `json:"harvest"`
-	Errors  []string                        `json:"errors"`
+	Name    string                         `json:"name"`
+	Storage StorageConfiguration           `json:"storage"`
+	Harvest HarvestDirectivesConfiguration `json:"harvest"`
+	Errors  []string                       `json:"errors"`
 }
 type FileStorageConfiguration struct {
 	BasePath string `json:"basePath"`

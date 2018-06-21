@@ -25,6 +25,6 @@ func main() {
 	http.Handle("/", handler.Playground("Lectio", "/graphql"))
 	http.Handle("/graphql", handler.GraphQL(graph.MakeExecutableSchema(service)))
 
-	fmt.Println("Listening on :8080/graphql, saving to " + service.Configuration().Storage.Filesys.BasePath)
+	fmt.Println("Listening on :8080/graphql, saving to " + service.DefaultConfiguration().Settings().Storage.Filesys.BasePath)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

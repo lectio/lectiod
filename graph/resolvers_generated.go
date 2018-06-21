@@ -19,9 +19,10 @@ func MakeExecutableSchema(resolvers Resolvers) graphql.ExecutableSchema {
 }
 
 type Resolvers interface {
-	Mutation_discoverURLsinText(ctx context.Context, text string) (*HarvestedResources, error)
-	Query_config(ctx context.Context) (*Configuration, error)
-	Query_urlsInText(ctx context.Context, text string) (*HarvestedResources, error)
+	Mutation_discoverURLsinText(ctx context.Context, config string, text string) (*HarvestedResources, error)
+	Query_configs(ctx context.Context) ([]Configuration, error)
+	Query_config(ctx context.Context, name string) (*Configuration, error)
+	Query_urlsInText(ctx context.Context, config string, text string) (*HarvestedResources, error)
 }
 
 type executableSchema struct {
@@ -87,6 +88,8 @@ func (ec *executionContext) _Configuration(ctx context.Context, sel []query.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Configuration")
+		case "name":
+			out.Values[i] = ec._Configuration_name(ctx, field, obj)
 		case "storage":
 			out.Values[i] = ec._Configuration_storage(ctx, field, obj)
 		case "harvest":
@@ -101,6 +104,17 @@ func (ec *executionContext) _Configuration(ctx context.Context, sel []query.Sele
 	return out
 }
 
+func (ec *executionContext) _Configuration_name(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Configuration"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Name
+	return graphql.MarshalString(res)
+}
+
 func (ec *executionContext) _Configuration_storage(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Configuration"
@@ -109,10 +123,7 @@ func (ec *executionContext) _Configuration_storage(ctx context.Context, field gr
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Storage
-	if res == nil {
-		return graphql.Null
-	}
-	return ec._StorageConfiguration(ctx, field.Selections, res)
+	return ec._StorageConfiguration(ctx, field.Selections, &res)
 }
 
 func (ec *executionContext) _Configuration_harvest(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
@@ -123,10 +134,7 @@ func (ec *executionContext) _Configuration_harvest(ctx context.Context, field gr
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Harvest
-	if res == nil {
-		return graphql.Null
-	}
-	return ec._HarvestDirectivesConfiguration(ctx, field.Selections, res)
+	return ec._HarvestDirectivesConfiguration(ctx, field.Selections, &res)
 }
 
 func (ec *executionContext) _Configuration_errors(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
@@ -587,7 +595,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel []query.Selection
 func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := field.Args["text"]; ok {
+	if tmp, ok := field.Args["config"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	} else {
+		var tmp interface{} = "DEFAULT"
 		var err error
 		arg0, err = graphql.UnmarshalString(tmp)
 		if err != nil {
@@ -595,7 +611,18 @@ func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, fi
 			return graphql.Null
 		}
 	}
-	args["text"] = arg0
+
+	args["config"] = arg0
+	var arg1 string
+	if tmp, ok := field.Args["text"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["text"] = arg1
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Mutation"
 	rctx.Args = args
@@ -604,7 +631,7 @@ func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, fi
 	defer rctx.Pop()
 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_discoverURLsinText(ctx, args["text"].(string))
+		return ec.resolvers.Mutation_discoverURLsinText(ctx, args["config"].(string), args["text"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -637,6 +664,8 @@ func (ec *executionContext) _Query(ctx context.Context, sel []query.Selection) g
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "configs":
+			out.Values[i] = ec._Query_configs(ctx, field)
 		case "config":
 			out.Values[i] = ec._Query_config(ctx, field)
 		case "urlsInText":
@@ -653,7 +682,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel []query.Selection) g
 	return out
 }
 
-func (ec *executionContext) _Query_config(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "Query",
 		Args:   nil,
@@ -669,7 +698,66 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_config(ctx)
+			return ec.resolvers.Query_configs(ctx)
+		})
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+		if resTmp == nil {
+			return graphql.Null
+		}
+		res := resTmp.([]Configuration)
+		arr1 := graphql.Array{}
+		for idx1 := range res {
+			arr1 = append(arr1, func() graphql.Marshaler {
+				rctx := graphql.GetResolverContext(ctx)
+				rctx.PushIndex(idx1)
+				defer rctx.Pop()
+				return ec._Configuration(ctx, field.Selections, &res[idx1])
+			}())
+		}
+		return arr1
+	})
+}
+
+func (ec *executionContext) _Query_config(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := field.Args["name"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	} else {
+		var tmp interface{} = "DEFAULT"
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+
+	args["name"] = arg0
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	})
+	return graphql.Defer(func() (ret graphql.Marshaler) {
+		defer func() {
+			if r := recover(); r != nil {
+				userErr := ec.Recover(ctx, r)
+				ec.Error(ctx, userErr)
+				ret = graphql.Null
+			}
+		}()
+
+		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+			return ec.resolvers.Query_config(ctx, args["name"].(string))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -689,7 +777,15 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := field.Args["text"]; ok {
+	if tmp, ok := field.Args["config"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	} else {
+		var tmp interface{} = "DEFAULT"
 		var err error
 		arg0, err = graphql.UnmarshalString(tmp)
 		if err != nil {
@@ -697,7 +793,18 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 			return graphql.Null
 		}
 	}
-	args["text"] = arg0
+
+	args["config"] = arg0
+	var arg1 string
+	if tmp, ok := field.Args["text"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["text"] = arg1
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "Query",
 		Args:   args,
@@ -713,7 +820,7 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_urlsInText(ctx, args["text"].(string))
+			return ec.resolvers.Query_urlsInText(ctx, args["config"].(string), args["text"].(string))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1620,6 +1727,7 @@ scalar ExtraLargeText
 scalar URLText
 scalar RegularExpression
 scalar ErrorMessage
+scalar ConfigurationName
 
 scalar Document
 scalar File
@@ -1658,8 +1766,9 @@ type HarvestDirectivesConfiguration {
 }
 
 type Configuration {
-  storage: StorageConfiguration
-  harvest : HarvestDirectivesConfiguration
+  name : ConfigurationName!
+  storage: StorageConfiguration!
+  harvest : HarvestDirectivesConfiguration!
   errors: [ErrorMessage]
 }
 
@@ -1695,10 +1804,12 @@ type HarvestedResources {
 }
 
 type Query {
-  config: Configuration
-  urlsInText(text: String!): HarvestedResources
+  configs : [Configuration]
+  config(name : ConfigurationName = "DEFAULT"): Configuration
+  urlsInText(config : ConfigurationName = "DEFAULT", text: String!): HarvestedResources
 }
 
 type Mutation {
-  discoverURLsinText(text : String!) : HarvestedResources
-}`)
+  discoverURLsinText(config : ConfigurationName = "DEFAULT", text : String!) : HarvestedResources
+}
+`)

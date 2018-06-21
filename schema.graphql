@@ -5,6 +5,7 @@ scalar ExtraLargeText
 scalar URLText
 scalar RegularExpression
 scalar ErrorMessage
+scalar ConfigurationName
 
 scalar Document
 scalar File
@@ -43,8 +44,9 @@ type HarvestDirectivesConfiguration {
 }
 
 type Configuration {
-  storage: StorageConfiguration
-  harvest : HarvestDirectivesConfiguration
+  name : ConfigurationName!
+  storage: StorageConfiguration!
+  harvest : HarvestDirectivesConfiguration!
   errors: [ErrorMessage]
 }
 
@@ -80,10 +82,11 @@ type HarvestedResources {
 }
 
 type Query {
-  config: Configuration
-  urlsInText(text: String!): HarvestedResources
+  configs : [Configuration]
+  config(name : ConfigurationName = "DEFAULT"): Configuration
+  urlsInText(config : ConfigurationName = "DEFAULT", text: String!): HarvestedResources
 }
 
 type Mutation {
-  discoverURLsinText(text : String!) : HarvestedResources
+  discoverURLsinText(config : ConfigurationName = "DEFAULT", text : String!) : HarvestedResources
 }

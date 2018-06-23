@@ -9,7 +9,8 @@ import (
 	"github.com/lectio/lectiod/graph"
 
 	"github.com/lectio/harvester"
-	"go.uber.org/zap"
+	opentrext "github.com/opentracing/opentracing-go/ext"
+	"github.com/opentracing/opentracing-go/log"
 	// github.com/google/go-jsonnet
 	// github.com/rcrowley/go-metrics
 )
@@ -131,20 +132,20 @@ func (c *Configuration) Settings() *graph.Configuration {
 func (c *Configuration) ConfigureContentHarvester(s *Service) {
 	c.ignoreURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.IgnoreURLsRegExprs)
 	c.removeParamsFromURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.RemoveParamsFromURLsRegEx)
-	c.contentHarvester = harvester.MakeContentHarvester(s.logger, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)
+	c.contentHarvester = harvester.MakeContentHarvester(s.observatory, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)
 }
 
 // Service is the overall GraphQL service handler
 type Service struct {
 	defaultConfig *Configuration
 	configs       ConfigurationsMap
-	logger        *zap.Logger
+	observatory   *harvester.Observatory
 }
 
 // NewService creates the GraphQL driver
-func NewService(logger *zap.Logger, store *FileStorage) *Service {
+func NewService(observatory *harvester.Observatory, store *FileStorage) *Service {
 	result := new(Service)
-	result.logger = logger
+	result.observatory = observatory
 	result.defaultConfig = NewConfiguration(result, DefaultConfigurationName, store)
 	result.configs = make(ConfigurationsMap)
 	result.configs[ConfigurationName(result.defaultConfig.settings.Name)] = result.defaultConfig
@@ -173,15 +174,21 @@ func (s *Service) Query_config(ctx context.Context, name string) (*graph.Configu
 }
 
 func (s *Service) Query_urlsInText(ctx context.Context, config string, text string) (*graph.HarvestedResources, error) {
+	span, ctx := s.observatory.StartTraceFromContext(ctx, "Query_urlsInText")
+	defer span.Finish()
+
 	conf := s.configs[ConfigurationName(config)]
 	if conf == nil {
-		return nil, fmt.Errorf("Unable to run query: config '%s' not found", config)
+		error := fmt.Errorf("Unable to run query: config '%s' not found", config)
+		opentrext.Error.Set(span, true)
+		span.LogFields(log.Error(error))
+		return nil, error
 	}
 
 	result := new(graph.HarvestedResources)
 	result.Text = text
 
-	r := conf.contentHarvester.HarvestResources(text)
+	r := conf.contentHarvester.HarvestResources(text, span)
 	for _, res := range r.Resources {
 		isURLValid, isDestValid := res.IsValid()
 		if !isURLValid {
@@ -227,7 +234,6 @@ func (s *Service) Query_urlsInText(ctx context.Context, config string, text stri
 			IsHTMLRedirect: isHTMLRedirect,
 			RedirectURL:    &redirectURL,
 		})
-		//csvWriter.Write([]string{time, tweetText, res.OriginalURLText(), "Resolved", "Success", resourceToString(res.ReferredByResource()), urlToString(finalURL), urlToString(resolvedURL), urlToString(cleanedURL)})
 	}
 	return result, nil
 }

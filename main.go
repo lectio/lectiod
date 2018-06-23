@@ -7,21 +7,18 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/lectio/harvester"
 	"github.com/lectio/lectiod/graph"
 	"github.com/lectio/lectiod/service"
 	"github.com/vektah/gqlgen/handler"
-	"go.uber.org/zap"
 )
 
 func main() {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		log.Fatalf("can't initialize zap logger: %v", err)
-	}
-	defer logger.Sync()
+	observatory := harvester.MakeObservatoryFromEnv()
+	defer observatory.Close()
 
 	storage := service.NewFileStorage("./tmp/diskv_data")
-	service := service.NewService(logger, storage)
+	service := service.NewService(observatory, storage)
 	http.Handle("/", handler.Playground("Lectio", "/graphql"))
 	http.Handle("/graphql", handler.GraphQL(graph.MakeExecutableSchema(service)))
 

@@ -2281,10 +2281,10 @@ func (ec *executionContext) introspectType(name string) *introspection.Type {
 	return introspection.WrapType(t)
 }
 
-var parsedSchema = schema.MustParse(`scalar SmallText
-scalar MediumText
-scalar LargeText
-scalar ExtraLargeText
+var parsedSchema = schema.MustParse(`# scalar SmallText
+# scalar MediumText
+# scalar LargeText
+# scalar ExtraLargeText
 scalar URLText
 scalar RegularExpression
 scalar ErrorMessage
@@ -2294,16 +2294,16 @@ scalar IdentityPrincipal
 scalar IdentityPassword
 scalar IdentityKey
 
-scalar Document
-scalar File
+# scalar Document
+# scalar File
 
-scalar Date
-scalar PastDate
-scalar FutureDate
-scalar DateTime
-scalar PastDateTime
-scalar FutureDateTime
-scalar Timestamp
+# scalar Date
+# scalar PastDate
+# scalar FutureDate
+# scalar DateTime
+# scalar PastDateTime
+# scalar FutureDateTime
+# scalar Timestamp
 
 scalar AuthenticatedSessionTimeout
 

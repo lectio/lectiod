@@ -1,4 +1,4 @@
-//go:generate gorunpkg github.com/vektah/gqlgen -schema schema.graphql -models graph/models_generated.go -out graph/resolvers_generated.go
+//go:generate gorunpkg github.com/vektah/gqlgen -schema schema.graphql -typemap schema.types.json -models graph/models_generated.go -out graph/resolvers_generated.go
 
 package main
 
@@ -49,6 +49,8 @@ func main() {
 		span, ctx := observatory.StartTraceFromContext(ctx, "HTTP Request")
 		defer span.Finish()
 		span.LogFields(otlog.String("rawQuery", requestContext.RawQuery))
+		// TODO ext.HTTPMethod.Set(span, ...)
+		// TODO ext.HTTPUrl.Set(span, ...)
 		ext.SpanKind.Set(span, "server")
 		ext.Component.Set(span, "gqlgen")
 		res := next(ctx)
@@ -60,6 +62,8 @@ func main() {
 	http.Handle("/", handler.Playground("Lectio", "/graphql"))
 	http.Handle("/graphql", handler.GraphQL(graph.MakeExecutableSchema(service),
 		handler.ResolverMiddleware(resolverMiddleware), handler.RequestMiddleware(requestMiddleware)))
+
+	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
 
 	fmt.Println("Listening on :8080/graphql, saving to " + service.DefaultConfiguration().Settings().Storage.Filesys.BasePath)
 	log.Fatal(http.ListenAndServe(":8080", nil))

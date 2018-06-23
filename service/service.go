@@ -15,28 +15,27 @@ import (
 	// github.com/rcrowley/go-metrics
 )
 
-type ConfigurationName string
-type ConfigurationsMap map[ConfigurationName]*Configuration
+type ConfigurationsMap map[graph.ConfigurationName]*Configuration
 
 const (
-	DefaultConfigurationName ConfigurationName = "DEFAULT"
+	DefaultConfigurationName graph.ConfigurationName = "DEFAULT"
 )
 
 type ignoreURLsRegExList []*regexp.Regexp
 type cleanURLsRegExList []*regexp.Regexp
 
-func (l *ignoreURLsRegExList) Add(config *graph.Configuration, value string) {
+func (l *ignoreURLsRegExList) Add(config *graph.Configuration, value graph.RegularExpression) {
 	if value != "" {
-		re, error := regexp.Compile(value)
+		re, error := regexp.Compile(string(value))
 		if error != nil {
-			config.Errors = append(config.Errors, fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
+			config.Errors = append(config.Errors, graph.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error())))
 			return
 		}
 		*l = append(*l, re)
 	}
 }
 
-func (l *ignoreURLsRegExList) AddSeveral(config *graph.Configuration, values []string) {
+func (l *ignoreURLsRegExList) AddSeveral(config *graph.Configuration, values []graph.RegularExpression) {
 	for _, value := range values {
 		l.Add(config, value)
 	}
@@ -52,18 +51,18 @@ func (l ignoreURLsRegExList) IgnoreDiscoveredResource(url *url.URL) (bool, strin
 	return false, ""
 }
 
-func (l *cleanURLsRegExList) Add(config *graph.Configuration, value string) {
+func (l *cleanURLsRegExList) Add(config *graph.Configuration, value graph.RegularExpression) {
 	if value != "" {
-		re, error := regexp.Compile(value)
+		re, error := regexp.Compile(string(value))
 		if error != nil {
-			config.Errors = append(config.Errors, fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
+			config.Errors = append(config.Errors, graph.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error())))
 			return
 		}
 		*l = append(*l, re)
 	}
 }
 
-func (l *cleanURLsRegExList) AddSeveral(config *graph.Configuration, values []string) {
+func (l *cleanURLsRegExList) AddSeveral(config *graph.Configuration, values []graph.RegularExpression) {
 	for _, value := range values {
 		l.Add(config, value)
 	}
@@ -83,7 +82,7 @@ func (l cleanURLsRegExList) RemoveQueryParamFromResource(paramName string) (bool
 	return false, ""
 }
 
-func resourceToString(hr *harvester.HarvestedResource) string {
+func resourceToString(hr *harvester.HarvestedResource) graph.URLText {
 	if hr == nil {
 		return ""
 	}
@@ -92,11 +91,11 @@ func resourceToString(hr *harvester.HarvestedResource) string {
 	return urlToString(referrerURL)
 }
 
-func urlToString(url *url.URL) string {
+func urlToString(url *url.URL) graph.URLText {
 	if url == nil {
 		return ""
 	}
-	return url.String()
+	return graph.URLText(url.String())
 }
 
 type Configuration struct {
@@ -107,17 +106,17 @@ type Configuration struct {
 	removeParamsFromURLsRegEx cleanURLsRegExList
 }
 
-func NewConfiguration(s *Service, name ConfigurationName, store *FileStorage) *Configuration {
+func NewConfiguration(s *Service, name graph.ConfigurationName, store *FileStorage) *Configuration {
 	result := new(Configuration)
 	result.store = store
 
 	result.settings = new(graph.Configuration)
-	result.settings.Name = string(name)
+	result.settings.Name = name
 	result.settings.Storage.Type = graph.StorageTypeFileSystem
 	result.settings.Storage.Filesys = &store.config
 
-	result.settings.Harvest.IgnoreURLsRegExprs = []string{`^https://twitter.com/(.*?)/status/(.*)$`, `https://t.co`}
-	result.settings.Harvest.RemoveParamsFromURLsRegEx = []string{`^utm_`}
+	result.settings.Harvest.IgnoreURLsRegExprs = []graph.RegularExpression{`^https://twitter.com/(.*?)/status/(.*)$`, `https://t.co`}
+	result.settings.Harvest.RemoveParamsFromURLsRegEx = []graph.RegularExpression{`^utm_`}
 	result.settings.Harvest.FollowHTMLRedirects = true
 	result.ConfigureContentHarvester(s)
 
@@ -148,7 +147,7 @@ func NewService(observatory *harvester.Observatory, store *FileStorage) *Service
 	result.observatory = observatory
 	result.defaultConfig = NewConfiguration(result, DefaultConfigurationName, store)
 	result.configs = make(ConfigurationsMap)
-	result.configs[ConfigurationName(result.defaultConfig.settings.Name)] = result.defaultConfig
+	result.configs[DefaultConfigurationName] = result.defaultConfig
 	return result
 }
 
@@ -165,19 +164,19 @@ func (s *Service) Query_configs(ctx context.Context) ([]graph.Configuration, err
 }
 
 // Query_config implements GraphQL query endpoint
-func (s *Service) Query_config(ctx context.Context, name string) (*graph.Configuration, error) {
-	config := s.configs[ConfigurationName(name)]
+func (s *Service) Query_config(ctx context.Context, name graph.ConfigurationName) (*graph.Configuration, error) {
+	config := s.configs[name]
 	if config != nil {
 		return config.settings, nil
 	}
 	return nil, nil
 }
 
-func (s *Service) Query_urlsInText(ctx context.Context, config string, text string) (*graph.HarvestedResources, error) {
+func (s *Service) Query_urlsInText(ctx context.Context, config graph.ConfigurationName, text string) (*graph.HarvestedResources, error) {
 	span, ctx := s.observatory.StartTraceFromContext(ctx, "Query_urlsInText")
 	defer span.Finish()
 
-	conf := s.configs[ConfigurationName(config)]
+	conf := s.configs[config]
 	if conf == nil {
 		error := fmt.Errorf("Unable to run query: config '%s' not found", config)
 		opentrext.Error.Set(span, true)
@@ -192,15 +191,15 @@ func (s *Service) Query_urlsInText(ctx context.Context, config string, text stri
 	for _, res := range r.Resources {
 		isURLValid, isDestValid := res.IsValid()
 		if !isURLValid {
-			result.Invalid = append(result.Invalid, graph.UnharvestedResource{Url: res.OriginalURLText(), Reason: "Invalid URL"})
+			result.Invalid = append(result.Invalid, graph.UnharvestedResource{Url: graph.URLText(res.OriginalURLText()), Reason: "Invalid URL"})
 			continue
 		}
 		if !isDestValid {
 			isIgnored, ignoreReason := res.IsIgnored()
 			if isIgnored {
-				result.Invalid = append(result.Invalid, graph.UnharvestedResource{Url: res.OriginalURLText(), Reason: fmt.Sprintf("Invalid URL Destination: %s", ignoreReason)})
+				result.Invalid = append(result.Invalid, graph.UnharvestedResource{Url: graph.URLText(res.OriginalURLText()), Reason: fmt.Sprintf("Invalid URL Destination: %s", ignoreReason)})
 			} else {
-				result.Invalid = append(result.Invalid, graph.UnharvestedResource{Url: res.OriginalURLText(), Reason: "Invalid URL Destination: unkown reason"})
+				result.Invalid = append(result.Invalid, graph.UnharvestedResource{Url: graph.URLText(res.OriginalURLText()), Reason: "Invalid URL Destination: unkown reason"})
 			}
 			continue
 		}
@@ -213,7 +212,7 @@ func (s *Service) Query_urlsInText(ctx context.Context, config string, text stri
 		if isIgnored {
 			result.Ignored = append(result.Ignored, graph.IgnoredResource{
 				Urls: graph.HarvestedResourceUrls{
-					Original: res.OriginalURLText(),
+					Original: graph.URLText(res.OriginalURLText()),
 					Final:    urlToString(finalURL),
 					Cleaned:  urlToString(cleanedURL),
 					Resolved: urlToString(resolvedURL),
@@ -223,21 +222,22 @@ func (s *Service) Query_urlsInText(ctx context.Context, config string, text stri
 			continue
 		}
 
+		redirectURLText := graph.URLText(redirectURL)
 		result.Harvested = append(result.Harvested, graph.HarvestedResource{
 			Urls: graph.HarvestedResourceUrls{
-				Original: res.OriginalURLText(),
+				Original: graph.URLText(res.OriginalURLText()),
 				Final:    urlToString(finalURL),
 				Cleaned:  urlToString(cleanedURL),
 				Resolved: urlToString(resolvedURL),
 			},
 			IsCleaned:      isCleaned,
 			IsHTMLRedirect: isHTMLRedirect,
-			RedirectURL:    &redirectURL,
+			RedirectURL:    &redirectURLText,
 		})
 	}
 	return result, nil
 }
 
-func (s *Service) Mutation_discoverURLsinText(ctx context.Context, config string, text string) (*graph.HarvestedResources, error) {
+func (s *Service) Mutation_discoverURLsinText(ctx context.Context, config graph.ConfigurationName, text string) (*graph.HarvestedResources, error) {
 	return s.Query_urlsInText(ctx, config, text)
 }

@@ -1,0 +1,14 @@
+{
+  "SmallText": "github.com/lectio/lectiod/graph.SmallText",
+  "MediumText": "github.com/lectio/lectiod/graph.MediumText",
+  "LargeText": "github.com/lectio/lectiod/graph.LargeText",
+  "ExtraLargeText": "github.com/lectio/lectiod/graph.ExtraLargeText",
+  "URLText": "github.com/lectio/lectiod/graph.URLText",
+  "RegularExpression": "github.com/lectio/lectiod/graph.RegularExpression",
+  "ErrorMessage": "github.com/lectio/lectiod/graph.ErrorMessage",
+  "ConfigurationName": "github.com/lectio/lectiod/graph.ConfigurationName",
+
+  "IdentityPrincipal": "github.com/lectio/lectiod/graph.IdentityPrincipal",
+  "IdentityPassword": "github.com/lectio/lectiod/graph.IdentityPassword",
+  "IdentityKey" : "github.com/lectio/lectiod/graph.IdentityKey"
+}

@@ -7,6 +7,10 @@ scalar RegularExpression
 scalar ErrorMessage
 scalar ConfigurationName
 
+scalar IdentityPrincipal
+scalar IdentityPassword
+scalar IdentityKey
+
 scalar Document
 scalar File
 
@@ -18,9 +22,76 @@ scalar PastDateTime
 scalar FutureDateTime
 scalar Timestamp
 
+scalar AuthenticatedSessionTimeout
+
+enum AuthenticationType {
+  SINGLE_FACTOR
+}
+
+enum AuthenticatedSessionType {
+  EPHEMERAL
+}
+
+interface AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+}
+
+interface AuthenticatedSession {
+  id: ID!
+  type: AuthenticatedSessionType!
+  identity: AuthenticationIdentity!
+  timeOut: AuthenticatedSessionTimeout!
+}
+
 interface Party {
   id: ID!
   name: String!  
+}
+
+type Person implements Party {
+  id: ID!
+  name: String!
+  firstName: String!
+  lastName: String!
+  users : [UserIdentity]
+  services : [ServiceIdentity]
+}
+
+type UserIdentity implements AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+  password : IdentityPassword!
+  person: Person!
+}
+
+type ServiceIdentity implements AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+  key : IdentityKey!
+}
+
+type OrganizationalUnit implements Party {
+  id: ID!
+  name: String!
+  units: [OrganizationalUnit]
+  services : [ServiceIdentity]
+}
+
+type Organization implements Party {
+  id: ID!
+  name: String!
+  units: [OrganizationalUnit]
+  services : [ServiceIdentity]
+}
+
+type Tenant implements Party {
+  id: ID!
+  name: String!
+  org: Organization!
 }
 
 # StorageType enumerates the different kinds of storage Lectio supports

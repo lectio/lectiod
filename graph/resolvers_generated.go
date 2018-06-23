@@ -19,10 +19,11 @@ func MakeExecutableSchema(resolvers Resolvers) graphql.ExecutableSchema {
 }
 
 type Resolvers interface {
-	Mutation_discoverURLsinText(ctx context.Context, config string, text string) (*HarvestedResources, error)
+	Mutation_discoverURLsinText(ctx context.Context, config ConfigurationName, text string) (*HarvestedResources, error)
+
 	Query_configs(ctx context.Context) ([]Configuration, error)
-	Query_config(ctx context.Context, name string) (*Configuration, error)
-	Query_urlsInText(ctx context.Context, config string, text string) (*HarvestedResources, error)
+	Query_config(ctx context.Context, name ConfigurationName) (*Configuration, error)
+	Query_urlsInText(ctx context.Context, config ConfigurationName, text string) (*HarvestedResources, error)
 }
 
 type executableSchema struct {
@@ -112,7 +113,7 @@ func (ec *executionContext) _Configuration_name(ctx context.Context, field graph
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Name
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _Configuration_storage(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
@@ -151,7 +152,7 @@ func (ec *executionContext) _Configuration_errors(ctx context.Context, field gra
 			rctx := graphql.GetResolverContext(ctx)
 			rctx.PushIndex(idx1)
 			defer rctx.Pop()
-			return graphql.MarshalString(res[idx1])
+			return res[idx1]
 		}())
 	}
 	return arr1
@@ -232,7 +233,7 @@ func (ec *executionContext) _HarvestDirectivesConfiguration_ignoreURLsRegExprs(c
 			rctx := graphql.GetResolverContext(ctx)
 			rctx.PushIndex(idx1)
 			defer rctx.Pop()
-			return graphql.MarshalString(res[idx1])
+			return res[idx1]
 		}())
 	}
 	return arr1
@@ -252,7 +253,7 @@ func (ec *executionContext) _HarvestDirectivesConfiguration_removeParamsFromURLs
 			rctx := graphql.GetResolverContext(ctx)
 			rctx.PushIndex(idx1)
 			defer rctx.Pop()
-			return graphql.MarshalString(res[idx1])
+			return res[idx1]
 		}())
 	}
 	return arr1
@@ -342,7 +343,7 @@ func (ec *executionContext) _HarvestedResource_redirectURL(ctx context.Context, 
 	if res == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalString(*res)
+	return *res
 }
 
 var harvestedResourceUrlsImplementors = []string{"HarvestedResourceUrls"}
@@ -382,7 +383,7 @@ func (ec *executionContext) _HarvestedResourceUrls_original(ctx context.Context,
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Original
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _HarvestedResourceUrls_final(ctx context.Context, field graphql.CollectedField, obj *HarvestedResourceUrls) graphql.Marshaler {
@@ -393,7 +394,7 @@ func (ec *executionContext) _HarvestedResourceUrls_final(ctx context.Context, fi
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Final
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _HarvestedResourceUrls_cleaned(ctx context.Context, field graphql.CollectedField, obj *HarvestedResourceUrls) graphql.Marshaler {
@@ -404,7 +405,7 @@ func (ec *executionContext) _HarvestedResourceUrls_cleaned(ctx context.Context, 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Cleaned
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _HarvestedResourceUrls_resolved(ctx context.Context, field graphql.CollectedField, obj *HarvestedResourceUrls) graphql.Marshaler {
@@ -415,7 +416,7 @@ func (ec *executionContext) _HarvestedResourceUrls_resolved(ctx context.Context,
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Resolved
-	return graphql.MarshalString(res)
+	return res
 }
 
 var harvestedResourcesImplementors = []string{"HarvestedResources"}
@@ -594,10 +595,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel []query.Selection
 
 func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 ConfigurationName
 	if tmp, ok := field.Args["config"]; ok {
 		var err error
-		arg0, err = graphql.UnmarshalString(tmp)
+		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -605,7 +606,7 @@ func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, fi
 	} else {
 		var tmp interface{} = "DEFAULT"
 		var err error
-		arg0, err = graphql.UnmarshalString(tmp)
+		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -631,7 +632,7 @@ func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, fi
 	defer rctx.Pop()
 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_discoverURLsinText(ctx, args["config"].(string), args["text"].(string))
+		return ec.resolvers.Mutation_discoverURLsinText(ctx, args["config"].(ConfigurationName), args["text"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -645,6 +646,305 @@ func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, fi
 		return graphql.Null
 	}
 	return ec._HarvestedResources(ctx, field.Selections, res)
+}
+
+var organizationImplementors = []string{"Organization", "Party"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Organization(ctx context.Context, sel []query.Selection, obj *Organization) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, organizationImplementors, ec.Variables)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Organization")
+		case "id":
+			out.Values[i] = ec._Organization_id(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._Organization_name(ctx, field, obj)
+		case "units":
+			out.Values[i] = ec._Organization_units(ctx, field, obj)
+		case "services":
+			out.Values[i] = ec._Organization_services(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *Organization) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Organization"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.ID
+	return graphql.MarshalID(res)
+}
+
+func (ec *executionContext) _Organization_name(ctx context.Context, field graphql.CollectedField, obj *Organization) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Organization"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Name
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _Organization_units(ctx context.Context, field graphql.CollectedField, obj *Organization) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Organization"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Units
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._OrganizationalUnit(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
+}
+
+func (ec *executionContext) _Organization_services(ctx context.Context, field graphql.CollectedField, obj *Organization) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Organization"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Services
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._ServiceIdentity(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
+}
+
+var organizationalUnitImplementors = []string{"OrganizationalUnit", "Party"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _OrganizationalUnit(ctx context.Context, sel []query.Selection, obj *OrganizationalUnit) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, organizationalUnitImplementors, ec.Variables)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OrganizationalUnit")
+		case "id":
+			out.Values[i] = ec._OrganizationalUnit_id(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._OrganizationalUnit_name(ctx, field, obj)
+		case "units":
+			out.Values[i] = ec._OrganizationalUnit_units(ctx, field, obj)
+		case "services":
+			out.Values[i] = ec._OrganizationalUnit_services(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _OrganizationalUnit_id(ctx context.Context, field graphql.CollectedField, obj *OrganizationalUnit) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "OrganizationalUnit"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.ID
+	return graphql.MarshalID(res)
+}
+
+func (ec *executionContext) _OrganizationalUnit_name(ctx context.Context, field graphql.CollectedField, obj *OrganizationalUnit) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "OrganizationalUnit"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Name
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _OrganizationalUnit_units(ctx context.Context, field graphql.CollectedField, obj *OrganizationalUnit) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "OrganizationalUnit"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Units
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._OrganizationalUnit(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
+}
+
+func (ec *executionContext) _OrganizationalUnit_services(ctx context.Context, field graphql.CollectedField, obj *OrganizationalUnit) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "OrganizationalUnit"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Services
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._ServiceIdentity(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
+}
+
+var personImplementors = []string{"Person", "Party"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Person(ctx context.Context, sel []query.Selection, obj *Person) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, personImplementors, ec.Variables)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Person")
+		case "id":
+			out.Values[i] = ec._Person_id(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._Person_name(ctx, field, obj)
+		case "firstName":
+			out.Values[i] = ec._Person_firstName(ctx, field, obj)
+		case "lastName":
+			out.Values[i] = ec._Person_lastName(ctx, field, obj)
+		case "users":
+			out.Values[i] = ec._Person_users(ctx, field, obj)
+		case "services":
+			out.Values[i] = ec._Person_services(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _Person_id(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Person"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.ID
+	return graphql.MarshalID(res)
+}
+
+func (ec *executionContext) _Person_name(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Person"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Name
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _Person_firstName(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Person"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.FirstName
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _Person_lastName(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Person"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.LastName
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _Person_users(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Person"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Users
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._UserIdentity(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
+}
+
+func (ec *executionContext) _Person_services(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Person"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Services
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._ServiceIdentity(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
 }
 
 var queryImplementors = []string{"Query"}
@@ -723,10 +1023,10 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 
 func (ec *executionContext) _Query_config(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 ConfigurationName
 	if tmp, ok := field.Args["name"]; ok {
 		var err error
-		arg0, err = graphql.UnmarshalString(tmp)
+		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -734,7 +1034,7 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 	} else {
 		var tmp interface{} = "DEFAULT"
 		var err error
-		arg0, err = graphql.UnmarshalString(tmp)
+		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -757,7 +1057,7 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_config(ctx, args["name"].(string))
+			return ec.resolvers.Query_config(ctx, args["name"].(ConfigurationName))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -776,10 +1076,10 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 
 func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 ConfigurationName
 	if tmp, ok := field.Args["config"]; ok {
 		var err error
-		arg0, err = graphql.UnmarshalString(tmp)
+		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -787,7 +1087,7 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 	} else {
 		var tmp interface{} = "DEFAULT"
 		var err error
-		arg0, err = graphql.UnmarshalString(tmp)
+		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -820,7 +1120,7 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_urlsInText(ctx, args["config"].(string), args["text"].(string))
+			return ec.resolvers.Query_urlsInText(ctx, args["config"].(ConfigurationName), args["text"].(string))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -876,6 +1176,79 @@ func (ec *executionContext) _Query___type(ctx context.Context, field graphql.Col
 	return ec.___Type(ctx, field.Selections, res)
 }
 
+var serviceIdentityImplementors = []string{"ServiceIdentity", "AuthenticationIdentity"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _ServiceIdentity(ctx context.Context, sel []query.Selection, obj *ServiceIdentity) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, serviceIdentityImplementors, ec.Variables)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceIdentity")
+		case "id":
+			out.Values[i] = ec._ServiceIdentity_id(ctx, field, obj)
+		case "type":
+			out.Values[i] = ec._ServiceIdentity_type(ctx, field, obj)
+		case "principal":
+			out.Values[i] = ec._ServiceIdentity_principal(ctx, field, obj)
+		case "key":
+			out.Values[i] = ec._ServiceIdentity_key(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _ServiceIdentity_id(ctx context.Context, field graphql.CollectedField, obj *ServiceIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "ServiceIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.ID
+	return graphql.MarshalID(res)
+}
+
+func (ec *executionContext) _ServiceIdentity_type(ctx context.Context, field graphql.CollectedField, obj *ServiceIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "ServiceIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Type
+	return res
+}
+
+func (ec *executionContext) _ServiceIdentity_principal(ctx context.Context, field graphql.CollectedField, obj *ServiceIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "ServiceIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Principal
+	return res
+}
+
+func (ec *executionContext) _ServiceIdentity_key(ctx context.Context, field graphql.CollectedField, obj *ServiceIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "ServiceIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Key
+	return res
+}
+
 var storageConfigurationImplementors = []string{"StorageConfiguration"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -926,6 +1299,66 @@ func (ec *executionContext) _StorageConfiguration_filesys(ctx context.Context, f
 	return ec._FileStorageConfiguration(ctx, field.Selections, res)
 }
 
+var tenantImplementors = []string{"Tenant", "Party"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Tenant(ctx context.Context, sel []query.Selection, obj *Tenant) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, tenantImplementors, ec.Variables)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Tenant")
+		case "id":
+			out.Values[i] = ec._Tenant_id(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._Tenant_name(ctx, field, obj)
+		case "org":
+			out.Values[i] = ec._Tenant_org(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _Tenant_id(ctx context.Context, field graphql.CollectedField, obj *Tenant) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Tenant"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.ID
+	return graphql.MarshalID(res)
+}
+
+func (ec *executionContext) _Tenant_name(ctx context.Context, field graphql.CollectedField, obj *Tenant) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Tenant"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Name
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _Tenant_org(ctx context.Context, field graphql.CollectedField, obj *Tenant) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Tenant"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Org
+	return ec._Organization(ctx, field.Selections, &res)
+}
+
 var unharvestedResourceImplementors = []string{"UnharvestedResource"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -959,7 +1392,7 @@ func (ec *executionContext) _UnharvestedResource_url(ctx context.Context, field 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Url
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _UnharvestedResource_reason(ctx context.Context, field graphql.CollectedField, obj *UnharvestedResource) graphql.Marshaler {
@@ -971,6 +1404,92 @@ func (ec *executionContext) _UnharvestedResource_reason(ctx context.Context, fie
 	defer rctx.Pop()
 	res := obj.Reason
 	return graphql.MarshalString(res)
+}
+
+var userIdentityImplementors = []string{"UserIdentity", "AuthenticationIdentity"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _UserIdentity(ctx context.Context, sel []query.Selection, obj *UserIdentity) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, userIdentityImplementors, ec.Variables)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserIdentity")
+		case "id":
+			out.Values[i] = ec._UserIdentity_id(ctx, field, obj)
+		case "type":
+			out.Values[i] = ec._UserIdentity_type(ctx, field, obj)
+		case "principal":
+			out.Values[i] = ec._UserIdentity_principal(ctx, field, obj)
+		case "password":
+			out.Values[i] = ec._UserIdentity_password(ctx, field, obj)
+		case "person":
+			out.Values[i] = ec._UserIdentity_person(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _UserIdentity_id(ctx context.Context, field graphql.CollectedField, obj *UserIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "UserIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.ID
+	return graphql.MarshalID(res)
+}
+
+func (ec *executionContext) _UserIdentity_type(ctx context.Context, field graphql.CollectedField, obj *UserIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "UserIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Type
+	return res
+}
+
+func (ec *executionContext) _UserIdentity_principal(ctx context.Context, field graphql.CollectedField, obj *UserIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "UserIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Principal
+	return res
+}
+
+func (ec *executionContext) _UserIdentity_password(ctx context.Context, field graphql.CollectedField, obj *UserIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "UserIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Password
+	return res
+}
+
+func (ec *executionContext) _UserIdentity_person(ctx context.Context, field graphql.CollectedField, obj *UserIdentity) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "UserIdentity"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Person
+	return ec._Person(ctx, field.Selections, &res)
 }
 
 var __DirectiveImplementors = []string{"__Directive"}
@@ -1699,10 +2218,52 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 	return ec.___Type(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _AuthenticatedSession(ctx context.Context, sel []query.Selection, obj *AuthenticatedSession) graphql.Marshaler {
+	switch obj := (*obj).(type) {
+	case nil:
+		return graphql.Null
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
+func (ec *executionContext) _AuthenticationIdentity(ctx context.Context, sel []query.Selection, obj *AuthenticationIdentity) graphql.Marshaler {
+	switch obj := (*obj).(type) {
+	case nil:
+		return graphql.Null
+	case UserIdentity:
+		return ec._UserIdentity(ctx, sel, &obj)
+	case *UserIdentity:
+		return ec._UserIdentity(ctx, sel, obj)
+	case ServiceIdentity:
+		return ec._ServiceIdentity(ctx, sel, &obj)
+	case *ServiceIdentity:
+		return ec._ServiceIdentity(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) _Party(ctx context.Context, sel []query.Selection, obj *Party) graphql.Marshaler {
 	switch obj := (*obj).(type) {
 	case nil:
 		return graphql.Null
+	case Person:
+		return ec._Person(ctx, sel, &obj)
+	case *Person:
+		return ec._Person(ctx, sel, obj)
+	case OrganizationalUnit:
+		return ec._OrganizationalUnit(ctx, sel, &obj)
+	case *OrganizationalUnit:
+		return ec._OrganizationalUnit(ctx, sel, obj)
+	case Organization:
+		return ec._Organization(ctx, sel, &obj)
+	case *Organization:
+		return ec._Organization(ctx, sel, obj)
+	case Tenant:
+		return ec._Tenant(ctx, sel, &obj)
+	case *Tenant:
+		return ec._Tenant(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -1729,6 +2290,10 @@ scalar RegularExpression
 scalar ErrorMessage
 scalar ConfigurationName
 
+scalar IdentityPrincipal
+scalar IdentityPassword
+scalar IdentityKey
+
 scalar Document
 scalar File
 
@@ -1740,9 +2305,76 @@ scalar PastDateTime
 scalar FutureDateTime
 scalar Timestamp
 
+scalar AuthenticatedSessionTimeout
+
+enum AuthenticationType {
+  SINGLE_FACTOR
+}
+
+enum AuthenticatedSessionType {
+  EPHEMERAL
+}
+
+interface AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+}
+
+interface AuthenticatedSession {
+  id: ID!
+  type: AuthenticatedSessionType!
+  identity: AuthenticationIdentity!
+  timeOut: AuthenticatedSessionTimeout!
+}
+
 interface Party {
   id: ID!
   name: String!  
+}
+
+type Person implements Party {
+  id: ID!
+  name: String!
+  firstName: String!
+  lastName: String!
+  users : [UserIdentity]
+  services : [ServiceIdentity]
+}
+
+type UserIdentity implements AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+  password : IdentityPassword!
+  person: Person!
+}
+
+type ServiceIdentity implements AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+  key : IdentityKey!
+}
+
+type OrganizationalUnit implements Party {
+  id: ID!
+  name: String!
+  units: [OrganizationalUnit]
+  services : [ServiceIdentity]
+}
+
+type Organization implements Party {
+  id: ID!
+  name: String!
+  units: [OrganizationalUnit]
+  services : [ServiceIdentity]
+}
+
+type Tenant implements Party {
+  id: ID!
+  name: String!
+  org: Organization!
 }
 
 # StorageType enumerates the different kinds of storage Lectio supports

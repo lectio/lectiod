@@ -8,31 +8,33 @@ import (
 	strconv "strconv"
 )
 
+type AuthenticatedSession interface{}
+type AuthenticationIdentity interface{}
 type Configuration struct {
-	Name    string                         `json:"name"`
+	Name    ConfigurationName              `json:"name"`
 	Storage StorageConfiguration           `json:"storage"`
 	Harvest HarvestDirectivesConfiguration `json:"harvest"`
-	Errors  []string                       `json:"errors"`
+	Errors  []ErrorMessage                 `json:"errors"`
 }
 type FileStorageConfiguration struct {
 	BasePath string `json:"basePath"`
 }
 type HarvestDirectivesConfiguration struct {
-	IgnoreURLsRegExprs        []string `json:"ignoreURLsRegExprs"`
-	RemoveParamsFromURLsRegEx []string `json:"removeParamsFromURLsRegEx"`
-	FollowHTMLRedirects       bool     `json:"followHTMLRedirects"`
+	IgnoreURLsRegExprs        []RegularExpression `json:"ignoreURLsRegExprs"`
+	RemoveParamsFromURLsRegEx []RegularExpression `json:"removeParamsFromURLsRegEx"`
+	FollowHTMLRedirects       bool                `json:"followHTMLRedirects"`
 }
 type HarvestedResource struct {
 	Urls           HarvestedResourceUrls `json:"urls"`
 	IsHTMLRedirect bool                  `json:"isHTMLRedirect"`
 	IsCleaned      bool                  `json:"isCleaned"`
-	RedirectURL    *string               `json:"redirectURL"`
+	RedirectURL    *URLText              `json:"redirectURL"`
 }
 type HarvestedResourceUrls struct {
-	Original string `json:"original"`
-	Final    string `json:"final"`
-	Cleaned  string `json:"cleaned"`
-	Resolved string `json:"resolved"`
+	Original URLText `json:"original"`
+	Final    URLText `json:"final"`
+	Cleaned  URLText `json:"cleaned"`
+	Resolved URLText `json:"resolved"`
 }
 type HarvestedResources struct {
 	Text      string                `json:"text"`
@@ -44,14 +46,122 @@ type IgnoredResource struct {
 	Urls   HarvestedResourceUrls `json:"urls"`
 	Reason string                `json:"reason"`
 }
+type Organization struct {
+	ID       string               `json:"id"`
+	Name     string               `json:"name"`
+	Units    []OrganizationalUnit `json:"units"`
+	Services []ServiceIdentity    `json:"services"`
+}
+type OrganizationalUnit struct {
+	ID       string               `json:"id"`
+	Name     string               `json:"name"`
+	Units    []OrganizationalUnit `json:"units"`
+	Services []ServiceIdentity    `json:"services"`
+}
 type Party interface{}
+type Person struct {
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	FirstName string            `json:"firstName"`
+	LastName  string            `json:"lastName"`
+	Users     []UserIdentity    `json:"users"`
+	Services  []ServiceIdentity `json:"services"`
+}
+type ServiceIdentity struct {
+	ID        string             `json:"id"`
+	Type      AuthenticationType `json:"type"`
+	Principal IdentityPrincipal  `json:"principal"`
+	Key       IdentityKey        `json:"key"`
+}
 type StorageConfiguration struct {
 	Type    StorageType               `json:"type"`
 	Filesys *FileStorageConfiguration `json:"filesys"`
 }
+type Tenant struct {
+	ID   string       `json:"id"`
+	Name string       `json:"name"`
+	Org  Organization `json:"org"`
+}
 type UnharvestedResource struct {
-	Url    string `json:"url"`
-	Reason string `json:"reason"`
+	Url    URLText `json:"url"`
+	Reason string  `json:"reason"`
+}
+type UserIdentity struct {
+	ID        string             `json:"id"`
+	Type      AuthenticationType `json:"type"`
+	Principal IdentityPrincipal  `json:"principal"`
+	Password  IdentityPassword   `json:"password"`
+	Person    Person             `json:"person"`
+}
+
+type AuthenticatedSessionType string
+
+const (
+	AuthenticatedSessionTypeEphemeral AuthenticatedSessionType = "EPHEMERAL"
+)
+
+func (e AuthenticatedSessionType) IsValid() bool {
+	switch e {
+	case AuthenticatedSessionTypeEphemeral:
+		return true
+	}
+	return false
+}
+
+func (e AuthenticatedSessionType) String() string {
+	return string(e)
+}
+
+func (e *AuthenticatedSessionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthenticatedSessionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AuthenticatedSessionType", str)
+	}
+	return nil
+}
+
+func (e AuthenticatedSessionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AuthenticationType string
+
+const (
+	AuthenticationTypeSingleFactor AuthenticationType = "SINGLE_FACTOR"
+)
+
+func (e AuthenticationType) IsValid() bool {
+	switch e {
+	case AuthenticationTypeSingleFactor:
+		return true
+	}
+	return false
+}
+
+func (e AuthenticationType) String() string {
+	return string(e)
+}
+
+func (e *AuthenticationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthenticationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AuthenticationType", str)
+	}
+	return nil
+}
+
+func (e AuthenticationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type StorageType string

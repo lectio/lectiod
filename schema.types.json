@@ -10,5 +10,7 @@
 
   "IdentityPrincipal": "github.com/lectio/lectiod/graph.IdentityPrincipal",
   "IdentityPassword": "github.com/lectio/lectiod/graph.IdentityPassword",
-  "IdentityKey" : "github.com/lectio/lectiod/graph.IdentityKey"
+  "IdentityKey" : "github.com/lectio/lectiod/graph.IdentityKey",
+
+  "AuthenticatedSessionTimeout" : "github.com/lectio/lectiod/graph.AuthenticatedSessionTimeout"
 }

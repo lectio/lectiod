@@ -53,7 +53,7 @@
   branch = "master"
   name = "github.com/lectio/harvester"
   packages = ["."]
-  revision = "c3beb801f6d530f9a56398b4dc47a00877f5529f"
+  revision = "e32b0d04f962ee674ba73f9dedd9b95eb9aef544"
 
 [[projects]]
   name = "github.com/opentracing/opentracing-go"

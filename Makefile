@@ -4,13 +4,26 @@ MAKEFLAGS := --silent
 ## Default is to run this in development mode for testing the website
 default: run
 
+## Setup this directory for development use (pull latest code, ensure dependencies are updated)
+setup-devl: pull dep
+
+## Make sure we have the latest code
+pull: 
+	git pull
+
+## Update all dependencies -- we've removed "[prune] unused-packages = true" from Gopkg.toml
+dep:
+	dep ensure
+	dep ensure -update
+
 ## Generate the GraphQL models and resolvers in graph subpackage
 generate-graphql:
-	go generate
+	go run vendor/github.com/vektah/gqlgen/main.go -schema schema.graphql -typemap schema.types.json -models graph/models_concrete_generated.go -out graph/resolvers_interface_generated.go
 
 ## Generate all code (such as the GraphQL subpackage)
 generate-all: generate-graphql
 
+.ONESHELL:
 ## Run the daemon
 run: generate-all
 	export JAEGER_SERVICE_NAME="Lectio Daemon"

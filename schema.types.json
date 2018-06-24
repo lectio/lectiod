@@ -1,16 +1,16 @@
 {
-  "SmallText": "github.com/lectio/lectiod/graph.SmallText",
-  "MediumText": "github.com/lectio/lectiod/graph.MediumText",
-  "LargeText": "github.com/lectio/lectiod/graph.LargeText",
-  "ExtraLargeText": "github.com/lectio/lectiod/graph.ExtraLargeText",
-  "URLText": "github.com/lectio/lectiod/graph.URLText",
-  "RegularExpression": "github.com/lectio/lectiod/graph.RegularExpression",
-  "ErrorMessage": "github.com/lectio/lectiod/graph.ErrorMessage",
-  "ConfigurationName": "github.com/lectio/lectiod/graph.ConfigurationName",
+  "SmallText": "github.com/lectio/lectiod/schema_defn.SmallText",
+  "MediumText": "github.com/lectio/lectiod/schema_defn.MediumText",
+  "LargeText": "github.com/lectio/lectiod/schema_defn.LargeText",
+  "ExtraLargeText": "github.com/lectio/lectiod/schema_defn.ExtraLargeText",
+  "URLText": "github.com/lectio/lectiod/schema_defn.URLText",
+  "RegularExpression": "github.com/lectio/lectiod/schema_defn.RegularExpression",
+  "ErrorMessage": "github.com/lectio/lectiod/schema_defn.ErrorMessage",
+  "ConfigurationName": "github.com/lectio/lectiod/schema_defn.ConfigurationName",
 
-  "IdentityPrincipal": "github.com/lectio/lectiod/graph.IdentityPrincipal",
-  "IdentityPassword": "github.com/lectio/lectiod/graph.IdentityPassword",
-  "IdentityKey" : "github.com/lectio/lectiod/graph.IdentityKey",
+  "IdentityPrincipal": "github.com/lectio/lectiod/schema_defn.IdentityPrincipal",
+  "IdentityPassword": "github.com/lectio/lectiod/schema_defn.IdentityPassword",
+  "IdentityKey" : "github.com/lectio/lectiod/schema_defn.IdentityKey",
 
-  "AuthenticatedSessionTimeout" : "github.com/lectio/lectiod/graph.AuthenticatedSessionTimeout"
+  "AuthenticatedSessionTimeout" : "github.com/lectio/lectiod/schema_defn.AuthenticatedSessionTimeout"
 }

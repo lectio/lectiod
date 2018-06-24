@@ -1,14 +1,14 @@
 package service
 
 import (
-	"github.com/lectio/lectiod/graph"
+	schema "github.com/lectio/lectiod/schema_defn"
 	"github.com/peterbourgon/diskv"
 	// github.com/rcrowley/go-metrics
 )
 
 // FileStorage stores Lectio content in the file system in a pseudo key-value pattern style
 type FileStorage struct {
-	config graph.FileStorageConfiguration
+	config schema.FileStorageConfiguration
 	diskv  *diskv.Diskv
 }
 

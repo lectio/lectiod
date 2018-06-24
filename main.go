@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/lectio/harvester"
-	"github.com/lectio/lectiod/graph"
+	schema "github.com/lectio/lectiod/schema_defn"
 	"github.com/lectio/lectiod/service"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -60,7 +60,7 @@ func main() {
 	storage := service.NewFileStorage("./tmp/diskv_data")
 	service := service.NewService(observatory, storage)
 	http.Handle("/", handler.Playground("Lectio", "/graphql"))
-	http.Handle("/graphql", handler.GraphQL(graph.MakeExecutableSchema(service),
+	http.Handle("/graphql", handler.GraphQL(schema.MakeExecutableSchema(service),
 		handler.ResolverMiddleware(resolverMiddleware), handler.RequestMiddleware(requestMiddleware)))
 
 	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager

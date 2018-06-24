@@ -18,7 +18,7 @@ dep:
 
 ## Generate the GraphQL models and resolvers in graph subpackage
 generate-graphql:
-	go run vendor/github.com/vektah/gqlgen/main.go -schema schema.graphql -typemap schema.types.json -models graph/models_concrete_generated.go -out graph/resolvers_interface_generated.go
+	go run vendor/github.com/vektah/gqlgen/main.go -schema schema.graphql -typemap schema.types.json -models schema_defn/models_concrete_generated.go -out schema_defn/resolvers_interface_generated.go
 
 ## Generate all code (such as the GraphQL subpackage)
 generate-all: generate-graphql

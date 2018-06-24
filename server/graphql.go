@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"net/http"
 
 	"github.com/lectio/lectiod/resolvers"
@@ -54,6 +55,16 @@ func createGraphQLObservableRequestMiddleware(o observe.Observatory) graphql.Req
 	}
 }
 
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	// A very simple health check.
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
+	// In the future we could report back on the status of our DB, or our cache
+	// (e.g. Redis) by performing a simple PING, and include them in the response.
+	io.WriteString(w, `{"alive": true}`)
+}
+
 // CreateGraphQLOverHTTPServer prepares an HTTP server to run GraphQL queries
 func CreateGraphQLOverHTTPServer(o observe.Observatory) *http.Server {
 	storage := storage.NewFileStorage("./tmp/diskv_data")
@@ -67,6 +78,7 @@ func CreateGraphQLOverHTTPServer(o observe.Observatory) *http.Server {
 	serveMux.Handle("/graphql", handler.GraphQL(schema.MakeExecutableSchema(resolvers),
 		handler.ResolverMiddleware(createGraphQLObservableResolverMiddleware(o)),
 		handler.RequestMiddleware(createGraphQLObservableRequestMiddleware(o))))
+	serveMux.HandleFunc("/health-check", healthCheckHandler)
 
 	server := http.Server{
 		Addr:    ":8080",

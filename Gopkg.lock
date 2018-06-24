@@ -26,6 +26,12 @@
   revision = "3a0bb77429bd3a61596f5e8a3172445844342120"
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/google/btree"
   packages = ["."]
@@ -84,10 +90,26 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/shah/observe-go"
   packages = ["."]
   revision = "fb180091d841f1c5df8ca9ce0fa5bc2b37aaab18"
+
+[[projects]]
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "require",
+    "suite"
+  ]
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
   name = "github.com/uber/jaeger-client-go"
@@ -162,6 +184,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f01713a67084306d661f7ba349a746577b1c89bbaf4cb3bbbb012ab21e4010e2"
+  inputs-digest = "c7933a325ff75729159e785a03014f28e5cded8d35d4c76d619c458ad30d9bda"
   solver-name = "gps-cdcl"
   solver-version = 1

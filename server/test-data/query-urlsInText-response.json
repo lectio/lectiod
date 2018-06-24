@@ -1,0 +1,32 @@
+{
+  "data": {
+    "urlsInText": {
+      "text": "Test a good URL https://t.co/csWpQq5mbn which will redirect to a URL we want to ignore, with utm_* params, then one we want to ignore https://t.co/xNzrxkHE1u",
+      "harvested": [
+        {
+          "urls": {
+            "original": "https://t.co/csWpQq5mbn",
+            "cleaned": "https://www.washingtonexaminer.com/chris-matthews-trump-russia-collusion-theory-came-apart-with-comey-testimony/article/2625372",
+            "resolved": "https://www.washingtonexaminer.com/chris-matthews-trump-russia-collusion-theory-came-apart-with-comey-testimony/article/2625372?utm_campaign=crowdfire&utm_content=crowdfire&utm_medium=social&utm_source=twitter",
+            "final": "https://www.washingtonexaminer.com/chris-matthews-trump-russia-collusion-theory-came-apart-with-comey-testimony/article/2625372"
+          },
+          "isHTMLRedirect": false,
+          "redirectURL": "",
+          "isCleaned": true
+        }
+      ],
+      "ignored": [
+        {
+          "urls": {
+            "original": "https://t.co/xNzrxkHE1u",
+            "cleaned": "",
+            "resolved": "https://twitter.com/Live5News/status/993220120402161664/photo/1",
+            "final": "https://twitter.com/Live5News/status/993220120402161664/photo/1"
+          },
+          "reason": "Ignored: Matched Ignore Rule `^https://twitter.com/(.*?)/status/(.*)$`"
+        }
+      ],
+      "invalid": []
+    }
+  }
+}

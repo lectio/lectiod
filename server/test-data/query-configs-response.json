@@ -1,0 +1,26 @@
+{
+    "data": {
+      "configs": [
+        {
+          "name": "DEFAULT",
+          "storage": {
+            "type": "FILE_SYSTEM",
+            "filesys": {
+              "basePath": "./tmp/diskv_data"
+            }
+          },
+          "harvest": {
+            "ignoreURLsRegExprs": [
+              "^https://twitter.com/(.*?)/status/(.*)$",
+              "https://t.co"
+            ],
+            "removeParamsFromURLsRegEx": [
+              "^utm_"
+            ],
+            "followHTMLRedirects": true
+          },
+          "errors": []
+        }
+      ]
+    }
+  }

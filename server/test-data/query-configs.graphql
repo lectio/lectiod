@@ -1,0 +1,8 @@
+query {
+  configs {
+    name
+    storage { type, filesys { basePath } }
+    harvest { ignoreURLsRegExprs, removeParamsFromURLsRegEx, followHTMLRedirects}
+    errors
+  }
+}

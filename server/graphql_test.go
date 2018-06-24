@@ -2,13 +2,21 @@
 package server
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
+	"strings"
+	"testing"
 
 	opentracing "github.com/opentracing/opentracing-go"
 	observe "github.com/shah/observe-go"
 	"github.com/stretchr/testify/suite"
 )
+
+var newLinesRegExp = regexp.MustCompile(`[\n\r]`)
+var quotesRegExp = regexp.MustCompile(`["]`)
 
 type GraphQLOverHTTPServerSuite struct {
 	suite.Suite
@@ -19,7 +27,7 @@ type GraphQLOverHTTPServerSuite struct {
 func (suite *GraphQLOverHTTPServerSuite) SetupSuite() {
 	observatory := observe.MakeObservatoryFromEnv()
 	suite.observatory = observatory
-	suite.span = observatory.StartTrace("ResourceSuite")
+	suite.span = observatory.StartTrace("GraphQLOverHTTPServerSuite")
 }
 
 func (suite *GraphQLOverHTTPServerSuite) TearDownSuite() {
@@ -28,10 +36,8 @@ func (suite *GraphQLOverHTTPServerSuite) TearDownSuite() {
 }
 
 func (suite *GraphQLOverHTTPServerSuite) TestHealthCheckHandler() {
-	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
-	// pass 'nil' as the third parameter.
 	req, err := http.NewRequest("GET", "/health-check", nil)
-	suite.Nil(err, "Unable to create Request")
+	suite.Nil(err, "Unable to create request")
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
@@ -41,9 +47,58 @@ func (suite *GraphQLOverHTTPServerSuite) TestHealthCheckHandler() {
 	// directly and pass in our Request and ResponseRecorder.
 	handler.ServeHTTP(rr, req)
 
-	suite.Equal(rr.Code, http.StatusOK, "Invalid HTTP Status")
+	suite.Equal(http.StatusOK, rr.Code, "Invalid HTTP Status")
+	suite.JSONEq(`{ "alive" : true }`, rr.Body.String(), "Unexpected response")
+}
 
-	// Check the response body is what we expect.
-	expected := `{"alive": true}`
-	suite.Equal(rr.Body.String(), expected, "Unexpected response")
+func cleanQuery(query []byte) string {
+	text := fmt.Sprintf("%s", query)
+	text = newLinesRegExp.ReplaceAllString(text, "")
+	text = quotesRegExp.ReplaceAllString(text, `\"`)
+	return text
+}
+
+func (suite *GraphQLOverHTTPServerSuite) testGraphQLQuery(queryName string) {
+	queryFileName := fmt.Sprintf("test-data/query-%s.graphql", queryName)
+	query, queryReadErr := ioutil.ReadFile(queryFileName)
+	suite.Nilf(queryReadErr, "Unable to read query from file %s", queryFileName)
+
+	responseToCompareToFileName := fmt.Sprintf("test-data/query-%s-response.json", queryName)
+	responseToCompareTo, responseCompareReadErr := ioutil.ReadFile(responseToCompareToFileName)
+	suite.Nilf(responseCompareReadErr, "Unable to read compare to response from file %s", responseToCompareToFileName)
+
+	postBody := fmt.Sprintf(`{"query":"%s","variables":null}`, cleanQuery(query))
+	req, err := http.NewRequest("POST", "/graphql", strings.NewReader(postBody))
+	suite.Nil(err, "Unable to create request")
+
+	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(createExecutableSchemaHandler(suite.observatory))
+
+	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+	// directly and pass in our Request and ResponseRecorder.
+	// TODO populate the request's context with our test data or opentracing parent spans, etc.
+	// ctx := req.Context()
+	// ctx = context.WithValue(ctx, "app.auth.token", "abc123")
+	// req = req.WithContext(ctx)
+	handler.ServeHTTP(rr, req)
+
+	suite.Equalf(http.StatusOK, rr.Code, "Invalid HTTP Status")
+	suite.JSONEq(fmt.Sprintf("%s", responseToCompareTo), rr.Body.String(), "Unexpected response")
+}
+
+func (suite *GraphQLOverHTTPServerSuite) TestConfigGraphQLQuery() {
+	suite.testGraphQLQuery("config")
+}
+
+func (suite *GraphQLOverHTTPServerSuite) TestConfigsGraphQLQuery() {
+	suite.testGraphQLQuery("configs")
+}
+
+func (suite *GraphQLOverHTTPServerSuite) TestUrlsInTextGraphQLQuery() {
+	suite.testGraphQLQuery("urlsInText")
+}
+
+func TestSuite(t *testing.T) {
+	suite.Run(t, new(GraphQLOverHTTPServerSuite))
 }

@@ -41,7 +41,7 @@ test: generate-all
 	export JAEGER_REPORTER_LOG_SPANS=true
 	export JAEGER_SAMPLER_TYPE=const
 	export JAEGER_SAMPLER_PARAM=1
-	cd server && go test
+	cd server && go test -v
 
 TARGET_MAX_CHAR_NUM=20
 ## All targets should have a ## Help text above the target and they'll be automatically collected

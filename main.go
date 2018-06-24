@@ -1,5 +1,3 @@
-//go:generate gorunpkg github.com/vektah/gqlgen -schema schema.graphql -typemap schema.types.json -models graph/models_generated.go -out graph/resolvers_generated.go
-
 package main
 
 import (
@@ -8,19 +6,19 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/lectio/harvester"
 	"github.com/lectio/lectiod/resolvers"
 	schema "github.com/lectio/lectiod/schema_defn"
 	"github.com/lectio/lectiod/storage"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	otlog "github.com/opentracing/opentracing-go/log"
+	observe "github.com/shah/observe-go"
 	"github.com/vektah/gqlgen/graphql"
 	"github.com/vektah/gqlgen/handler"
 )
 
 func main() {
-	observatory := harvester.MakeObservatoryFromEnv()
+	observatory := observe.MakeObservatoryFromEnv()
 	defer observatory.Close()
 
 	resolverMiddleware := func(ctx context.Context, next graphql.Resolver) (interface{}, error) {
@@ -59,13 +57,13 @@ func main() {
 	}
 
 	storage := storage.NewFileStorage("./tmp/diskv_data")
-	service := resolvers.NewService(observatory, storage)
+	resolvers := resolvers.NewSchemaResolvers(observatory, storage)
 	http.Handle("/", handler.Playground("Lectio", "/graphql"))
-	http.Handle("/graphql", handler.GraphQL(schema.MakeExecutableSchema(service),
+	http.Handle("/graphql", handler.GraphQL(schema.MakeExecutableSchema(resolvers),
 		handler.ResolverMiddleware(resolverMiddleware), handler.RequestMiddleware(requestMiddleware)))
 
 	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
 
-	fmt.Println("Listening on :8080/graphql, saving to " + service.DefaultConfiguration().Settings().Storage.Filesys.BasePath)
+	fmt.Println("Listening on :8080/graphql, saving to " + resolvers.DefaultConfiguration().Settings().Storage.Filesys.BasePath)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

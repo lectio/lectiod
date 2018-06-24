@@ -1,4 +1,4 @@
-package service
+package resolvers
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	schema "github.com/lectio/lectiod/schema_defn"
+	"github.com/lectio/lectiod/storage"
 
 	"github.com/lectio/harvester"
 	opentrext "github.com/opentracing/opentracing-go/ext"
@@ -100,20 +101,20 @@ func urlToString(url *url.URL) schema.URLText {
 
 type Configuration struct {
 	settings                  *schema.Configuration
-	store                     *FileStorage
+	store                     *storage.FileStorage
 	contentHarvester          *harvester.ContentHarvester
 	ignoreURLsRegEx           ignoreURLsRegExList
 	removeParamsFromURLsRegEx cleanURLsRegExList
 }
 
-func NewConfiguration(s *Service, name schema.ConfigurationName, store *FileStorage) *Configuration {
+func NewConfiguration(s *Service, name schema.ConfigurationName, store *storage.FileStorage) *Configuration {
 	result := new(Configuration)
 	result.store = store
 
 	result.settings = new(schema.Configuration)
 	result.settings.Name = name
 	result.settings.Storage.Type = schema.StorageTypeFileSystem
-	result.settings.Storage.Filesys = &store.config
+	result.settings.Storage.Filesys = &store.Config
 
 	result.settings.Harvest.IgnoreURLsRegExprs = []schema.RegularExpression{`^https://twitter.com/(.*?)/status/(.*)$`, `https://t.co`}
 	result.settings.Harvest.RemoveParamsFromURLsRegEx = []schema.RegularExpression{`^utm_`}
@@ -142,7 +143,7 @@ type Service struct {
 }
 
 // NewService creates the GraphQL driver
-func NewService(observatory *harvester.Observatory, store *FileStorage) *Service {
+func NewService(observatory *harvester.Observatory, store *storage.FileStorage) *Service {
 	result := new(Service)
 	result.observatory = observatory
 	result.defaultConfig = NewConfiguration(result, DefaultConfigurationName, store)

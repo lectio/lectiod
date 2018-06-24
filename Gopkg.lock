@@ -120,7 +120,6 @@
     "handler",
     "neelance/common",
     "neelance/errors",
-    "neelance/introspection",
     "neelance/query",
     "neelance/schema",
     "neelance/validation"
@@ -156,6 +155,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4cf02b165baf1cb7c038d4411dcff8d80b538c959d4d88832c8772fdab9f6e3c"
+  inputs-digest = "0caf647cfc81463a2cb61c00dbd4d8100ad9cb90f1247e295c4aede176154977"
   solver-name = "gps-cdcl"
   solver-version = 1

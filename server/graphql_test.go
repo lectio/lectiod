@@ -76,11 +76,9 @@ func (suite *GraphQLOverHTTPServerSuite) testGraphQLQuery(queryName string) {
 	handler := http.HandlerFunc(createExecutableSchemaHandler(suite.observatory))
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
-	// directly and pass in our Request and ResponseRecorder.
-	// TODO populate the request's context with our test data or opentracing parent spans, etc.
-	// ctx := req.Context()
-	// ctx = context.WithValue(ctx, "app.auth.token", "abc123")
-	// req = req.WithContext(ctx)
+	// directly and pass in our Request and ResponseRecorder with context info.
+	ctx := opentracing.ContextWithSpan(req.Context(), suite.span)
+	req = req.WithContext(ctx)
 	handler.ServeHTTP(rr, req)
 
 	suite.Equalf(http.StatusOK, rr.Code, "Invalid HTTP Status")

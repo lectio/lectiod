@@ -53,7 +53,7 @@
   branch = "master"
   name = "github.com/lectio/harvester"
   packages = ["."]
-  revision = "4e04dd3d8623bb4eed70c71ad7b4fb9c8cb4579f"
+  revision = "8f4d939fbb83315348a6d9b78725cac51868e8e9"
 
 [[projects]]
   name = "github.com/opentracing/opentracing-go"
@@ -162,6 +162,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4cf02b165baf1cb7c038d4411dcff8d80b538c959d4d88832c8772fdab9f6e3c"
+  inputs-digest = "f01713a67084306d661f7ba349a746577b1c89bbaf4cb3bbbb012ab21e4010e2"
   solver-name = "gps-cdcl"
   solver-version = 1

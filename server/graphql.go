@@ -65,19 +65,26 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `{"alive": true}`)
 }
 
-// CreateGraphQLOverHTTPServer prepares an HTTP server to run GraphQL queries
-func CreateGraphQLOverHTTPServer(o observe.Observatory) *http.Server {
+func createExecutableSchemaHandler(o observe.Observatory) http.HandlerFunc {
 	storage := storage.NewFileStorage("./tmp/diskv_data")
 	resolvers := resolvers.NewSchemaResolvers(o, storage)
 
 	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
 	// TODO Add health check handler
 
+	return handler.GraphQL(schema.MakeExecutableSchema(resolvers),
+		handler.ResolverMiddleware(createGraphQLObservableResolverMiddleware(o)),
+		handler.RequestMiddleware(createGraphQLObservableRequestMiddleware(o)))
+}
+
+// CreateGraphQLOverHTTPServer prepares an HTTP server to run GraphQL queries
+func CreateGraphQLOverHTTPServer(o observe.Observatory) *http.Server {
+
+	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
+
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/", handler.Playground("Lectio", "/graphql"))
-	serveMux.Handle("/graphql", handler.GraphQL(schema.MakeExecutableSchema(resolvers),
-		handler.ResolverMiddleware(createGraphQLObservableResolverMiddleware(o)),
-		handler.RequestMiddleware(createGraphQLObservableRequestMiddleware(o))))
+	serveMux.Handle("/graphql", createExecutableSchemaHandler(o))
 	serveMux.HandleFunc("/health-check", healthCheckHandler)
 
 	server := http.Server{

@@ -1,6 +1,8 @@
 SHELL := /bin/bash
 MAKEFLAGS := --silent
 
+## TODO Check out https://github.com/genuinetools/img/blob/master/Makefile to borrow some targets
+
 ## Default is to run this in development mode for testing the website
 default: run
 

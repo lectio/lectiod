@@ -175,11 +175,11 @@ func (sr *SchemaResolvers) Mutation_establishSimulatedSession(ctx context.Contex
 }
 
 func (sr *SchemaResolvers) Mutation_destroySession(ctx context.Context, sessionID schema.AuthenticatedSessionID) (bool, error) {
-	return false, errors.New("Not implemented yet")
+	return false, errors.New("Mutation destroySession not implemented yet")
 }
 
-func (sr *SchemaResolvers) Mutation_destroyAllSessions(ctx context.Context) (schema.AuthenticatedSessionsCount, error) {
-	return schema.AuthenticatedSessionsCount(0), errors.New("Not implemented yet")
+func (sr *SchemaResolvers) Mutation_destroyAllSessions(ctx context.Context, superUserSessionID schema.AuthenticatedSessionID) (schema.AuthenticatedSessionsCount, error) {
+	return schema.AuthenticatedSessionsCount(0), errors.New("Superuser-only mutation destroyAllSessions not implemented yet")
 }
 
 func (sr *SchemaResolvers) Mutation_saveURLsinText(ctx context.Context, sessionID schema.AuthenticatedSessionID, text string) (*schema.HarvestedResources, error) {

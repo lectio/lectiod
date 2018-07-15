@@ -27,7 +27,7 @@ func NewExecutableSchema(resolvers ResolverRoot) graphql.ExecutableSchema {
 type Resolvers interface {
 	Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
 	Mutation_destroySession(ctx context.Context, sessionID AuthenticatedSessionID) (bool, error)
-	Mutation_destroyAllSessions(ctx context.Context) (AuthenticatedSessionsCount, error)
+	Mutation_destroyAllSessions(ctx context.Context, superUserSessionID AuthenticatedSessionID) (AuthenticatedSessionsCount, error)
 	Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
 
 	Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
@@ -44,7 +44,7 @@ type ResolverRoot interface {
 type MutationResolver interface {
 	EstablishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
 	DestroySession(ctx context.Context, sessionID AuthenticatedSessionID) (bool, error)
-	DestroyAllSessions(ctx context.Context) (AuthenticatedSessionsCount, error)
+	DestroyAllSessions(ctx context.Context, superUserSessionID AuthenticatedSessionID) (AuthenticatedSessionsCount, error)
 	SaveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
 }
 type QueryResolver interface {
@@ -67,8 +67,8 @@ func (s shortMapper) Mutation_destroySession(ctx context.Context, sessionID Auth
 	return s.r.Mutation().DestroySession(ctx, sessionID)
 }
 
-func (s shortMapper) Mutation_destroyAllSessions(ctx context.Context) (AuthenticatedSessionsCount, error) {
-	return s.r.Mutation().DestroyAllSessions(ctx)
+func (s shortMapper) Mutation_destroyAllSessions(ctx context.Context, superUserSessionID AuthenticatedSessionID) (AuthenticatedSessionsCount, error) {
+	return s.r.Mutation().DestroyAllSessions(ctx, superUserSessionID)
 }
 
 func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error) {
@@ -760,14 +760,25 @@ func (ec *executionContext) _Mutation_destroySession(ctx context.Context, field 
 }
 
 func (ec *executionContext) _Mutation_destroyAllSessions(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	args := map[string]interface{}{}
+	var arg0 AuthenticatedSessionID
+	if tmp, ok := field.Args["superUserSessionID"]; ok {
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["superUserSessionID"] = arg0
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Mutation"
-	rctx.Args = nil
+	rctx.Args = args
 	rctx.Field = field
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_destroyAllSessions(ctx)
+		return ec.resolvers.Mutation_destroyAllSessions(ctx, args["superUserSessionID"].(AuthenticatedSessionID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2798,7 +2809,7 @@ type Query {
 type Mutation {
   establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
   destroySession(sessionID : AuthenticatedSessionID!) : Boolean!
-  destroyAllSessions() : AuthenticatedSessionsCount!
+  destroyAllSessions(superUserSessionID : AuthenticatedSessionID!) : AuthenticatedSessionsCount!
   saveURLsinText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text : String!) : HarvestedResources
 }
 `)

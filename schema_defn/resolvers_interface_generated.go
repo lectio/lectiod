@@ -26,6 +26,7 @@ func NewExecutableSchema(resolvers ResolverRoot) graphql.ExecutableSchema {
 
 type Resolvers interface {
 	Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
+	Mutation_refreshSession(ctx context.Context, sessionID AuthenticatedSessionID) (AuthenticatedSession, error)
 	Mutation_destroySession(ctx context.Context, sessionID AuthenticatedSessionID) (bool, error)
 	Mutation_destroyAllSessions(ctx context.Context, superUserSessionID AuthenticatedSessionID) (AuthenticatedSessionsCount, error)
 	Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
@@ -43,6 +44,7 @@ type ResolverRoot interface {
 }
 type MutationResolver interface {
 	EstablishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
+	RefreshSession(ctx context.Context, sessionID AuthenticatedSessionID) (AuthenticatedSession, error)
 	DestroySession(ctx context.Context, sessionID AuthenticatedSessionID) (bool, error)
 	DestroyAllSessions(ctx context.Context, superUserSessionID AuthenticatedSessionID) (AuthenticatedSessionsCount, error)
 	SaveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
@@ -61,6 +63,10 @@ type shortMapper struct {
 
 func (s shortMapper) Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error) {
 	return s.r.Mutation().EstablishSimulatedSession(ctx, config)
+}
+
+func (s shortMapper) Mutation_refreshSession(ctx context.Context, sessionID AuthenticatedSessionID) (AuthenticatedSession, error) {
+	return s.r.Mutation().RefreshSession(ctx, sessionID)
 }
 
 func (s shortMapper) Mutation_destroySession(ctx context.Context, sessionID AuthenticatedSessionID) (bool, error) {
@@ -672,6 +678,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel []query.Selection
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "establishSimulatedSession":
 			out.Values[i] = ec._Mutation_establishSimulatedSession(ctx, field)
+		case "refreshSession":
+			out.Values[i] = ec._Mutation_refreshSession(ctx, field)
 		case "destroySession":
 			out.Values[i] = ec._Mutation_destroySession(ctx, field)
 		case "destroyAllSessions":
@@ -715,6 +723,38 @@ func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Cont
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
 		return ec.resolvers.Mutation_establishSimulatedSession(ctx, args["config"].(ConfigurationName))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(AuthenticatedSession)
+	return ec._AuthenticatedSession(ctx, field.Selections, &res)
+}
+
+func (ec *executionContext) _Mutation_refreshSession(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	args := map[string]interface{}{}
+	var arg0 AuthenticatedSessionID
+	if tmp, ok := field.Args["sessionID"]; ok {
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["sessionID"] = arg0
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Mutation"
+	rctx.Args = args
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return ec.resolvers.Mutation_refreshSession(ctx, args["sessionID"].(AuthenticatedSessionID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2808,6 +2848,7 @@ type Query {
 
 type Mutation {
   establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  refreshSession(sessionID : AuthenticatedSessionID!) : AuthenticatedSession
   destroySession(sessionID : AuthenticatedSessionID!) : Boolean!
   destroyAllSessions(superUserSessionID : AuthenticatedSessionID!) : AuthenticatedSessionsCount!
   saveURLsinText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text : String!) : HarvestedResources

@@ -191,6 +191,7 @@ type Query {
 
 type Mutation {
   establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  refreshSession(sessionID : AuthenticatedSessionID!) : AuthenticatedSession
   destroySession(sessionID : AuthenticatedSessionID!) : Boolean!
   destroyAllSessions(superUserSessionID : AuthenticatedSessionID!) : AuthenticatedSessionsCount!
   saveURLsinText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text : String!) : HarvestedResources

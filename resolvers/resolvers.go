@@ -182,6 +182,10 @@ func (sr *SchemaResolvers) Mutation_destroyAllSessions(ctx context.Context, supe
 	return schema.AuthenticatedSessionsCount(0), errors.New("Superuser-only mutation destroyAllSessions not implemented yet")
 }
 
+func (sr *SchemaResolvers) Mutation_refreshSession(ctx context.Context, sessionID schema.AuthenticatedSessionID) (schema.AuthenticatedSession, error) {
+	return nil, errors.New("Mutation refreshSession (for JWT refreshes) not implemented yet")
+}
+
 func (sr *SchemaResolvers) Mutation_saveURLsinText(ctx context.Context, sessionID schema.AuthenticatedSessionID, text string) (*schema.HarvestedResources, error) {
 	return sr.Query_urlsInText(ctx, sessionID, text)
 }

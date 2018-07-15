@@ -9,6 +9,7 @@ import (
 )
 
 type AuthenticationIdentity interface{}
+type AuthorizationClaimCryptoKey interface{}
 type Configuration struct {
 	Name    ConfigurationName              `json:"name"`
 	Storage StorageConfiguration           `json:"storage"`

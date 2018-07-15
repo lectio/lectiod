@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	schema "github.com/lectio/lectiod/schema_defn"
@@ -53,6 +54,16 @@ func (sr *SchemaResolvers) ValidateSession(ctx context.Context, sessionID schema
 		return nil, error
 	}
 	return session, nil
+}
+
+// Query_asymmetricCryptoPublicKey returns the public key in JWTs 'kid' header
+func (sr *SchemaResolvers) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType schema.AuthorizationClaimType, keyId string) (schema.AuthorizationClaimCryptoKey, error) {
+	return nil, errors.New("Not implemented yet")
+}
+
+// Query_asymmetricCryptoPublicKeys returns the JWT public keys used by this service
+func (sr *SchemaResolvers) Query_asymmetricCryptoPublicKeys(ctx context.Context, claimType *schema.AuthorizationClaimType) ([]*schema.AuthorizationClaimCryptoKey, error) {
+	return nil, errors.New("Not implemented yet")
 }
 
 func (sr *SchemaResolvers) Query_configs(ctx context.Context, sessionID schema.AuthenticatedSessionID) ([]*schema.Configuration, error) {

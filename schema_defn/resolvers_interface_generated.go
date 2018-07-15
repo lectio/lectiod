@@ -28,6 +28,8 @@ type Resolvers interface {
 	Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
 	Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
 
+	Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
+	Query_asymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error)
 	Query_configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error)
 	Query_config(ctx context.Context, sessionID AuthenticatedSessionID, name ConfigurationName) (*Configuration, error)
 	Query_urlsInText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
@@ -42,6 +44,8 @@ type MutationResolver interface {
 	SaveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
 }
 type QueryResolver interface {
+	AsymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
+	AsymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error)
 	Configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error)
 	Config(ctx context.Context, sessionID AuthenticatedSessionID, name ConfigurationName) (*Configuration, error)
 	UrlsInText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
@@ -57,6 +61,14 @@ func (s shortMapper) Mutation_establishSimulatedSession(ctx context.Context, con
 
 func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error) {
 	return s.r.Mutation().SaveURLsinText(ctx, sessionID, text)
+}
+
+func (s shortMapper) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error) {
+	return s.r.Query().AsymmetricCryptoPublicKey(ctx, claimType, keyId)
+}
+
+func (s shortMapper) Query_asymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error) {
+	return s.r.Query().AsymmetricCryptoPublicKeys(ctx, claimType)
 }
 
 func (s shortMapper) Query_configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error) {
@@ -710,7 +722,7 @@ func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field 
 			return graphql.Null
 		}
 	} else {
-		var tmp interface{} = "HTTP_HEADER"
+		var tmp interface{} = "JWT_IN_HTTP_HEADER"
 		var err error
 		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
@@ -1087,6 +1099,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel []query.Selection) g
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "asymmetricCryptoPublicKey":
+			out.Values[i] = ec._Query_asymmetricCryptoPublicKey(ctx, field)
+		case "asymmetricCryptoPublicKeys":
+			out.Values[i] = ec._Query_asymmetricCryptoPublicKeys(ctx, field)
 		case "configs":
 			out.Values[i] = ec._Query_configs(ctx, field)
 		case "config":
@@ -1105,6 +1121,115 @@ func (ec *executionContext) _Query(ctx context.Context, sel []query.Selection) g
 	return out
 }
 
+func (ec *executionContext) _Query_asymmetricCryptoPublicKey(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	args := map[string]interface{}{}
+	var arg0 AuthorizationClaimType
+	if tmp, ok := field.Args["claimType"]; ok {
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["claimType"] = arg0
+	var arg1 string
+	if tmp, ok := field.Args["keyId"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["keyId"] = arg1
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	})
+	return graphql.Defer(func() (ret graphql.Marshaler) {
+		defer func() {
+			if r := recover(); r != nil {
+				userErr := ec.Recover(ctx, r)
+				ec.Error(ctx, userErr)
+				ret = graphql.Null
+			}
+		}()
+
+		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+			return ec.resolvers.Query_asymmetricCryptoPublicKey(ctx, args["claimType"].(AuthorizationClaimType), args["keyId"].(string))
+		})
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+		if resTmp == nil {
+			return graphql.Null
+		}
+		res := resTmp.(AuthorizationClaimCryptoKey)
+		return ec._AuthorizationClaimCryptoKey(ctx, field.Selections, &res)
+	})
+}
+
+func (ec *executionContext) _Query_asymmetricCryptoPublicKeys(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	args := map[string]interface{}{}
+	var arg0 *AuthorizationClaimType
+	if tmp, ok := field.Args["claimType"]; ok {
+		var err error
+		var ptr1 AuthorizationClaimType
+		if tmp != nil {
+			err = (&ptr1).UnmarshalGQL(tmp)
+			arg0 = &ptr1
+		}
+
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["claimType"] = arg0
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	})
+	return graphql.Defer(func() (ret graphql.Marshaler) {
+		defer func() {
+			if r := recover(); r != nil {
+				userErr := ec.Recover(ctx, r)
+				ec.Error(ctx, userErr)
+				ret = graphql.Null
+			}
+		}()
+
+		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+			return ec.resolvers.Query_asymmetricCryptoPublicKeys(ctx, args["claimType"].(*AuthorizationClaimType))
+		})
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+		if resTmp == nil {
+			return graphql.Null
+		}
+		res := resTmp.([]*AuthorizationClaimCryptoKey)
+		arr1 := graphql.Array{}
+		for idx1 := range res {
+			arr1 = append(arr1, func() graphql.Marshaler {
+				rctx := graphql.GetResolverContext(ctx)
+				rctx.PushIndex(idx1)
+				defer rctx.Pop()
+				if res[idx1] == nil {
+					return graphql.Null
+				}
+				return ec._AuthorizationClaimCryptoKey(ctx, field.Selections, res[idx1])
+			}())
+		}
+		return arr1
+	})
+}
+
 func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
 	var arg0 AuthenticatedSessionID
@@ -1116,7 +1241,7 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 			return graphql.Null
 		}
 	} else {
-		var tmp interface{} = "HTTP_HEADER"
+		var tmp interface{} = "JWT_IN_HTTP_HEADER"
 		var err error
 		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
@@ -1178,7 +1303,7 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 			return graphql.Null
 		}
 	} else {
-		var tmp interface{} = "HTTP_HEADER"
+		var tmp interface{} = "JWT_IN_HTTP_HEADER"
 		var err error
 		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
@@ -1241,7 +1366,7 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 			return graphql.Null
 		}
 	} else {
-		var tmp interface{} = "HTTP_HEADER"
+		var tmp interface{} = "JWT_IN_HTTP_HEADER"
 		var err error
 		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
@@ -2364,6 +2489,15 @@ func (ec *executionContext) _AuthenticationIdentity(ctx context.Context, sel []q
 	}
 }
 
+func (ec *executionContext) _AuthorizationClaimCryptoKey(ctx context.Context, sel []query.Selection, obj *AuthorizationClaimCryptoKey) graphql.Marshaler {
+	switch obj := (*obj).(type) {
+	case nil:
+		return graphql.Null
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) _Party(ctx context.Context, sel []query.Selection, obj *Party) graphql.Marshaler {
 	switch obj := (*obj).(type) {
 	case nil:
@@ -2405,6 +2539,7 @@ var parsedSchema = schema.MustParse(`# scalar SmallText
 # scalar MediumText
 # scalar LargeText
 # scalar ExtraLargeText
+scalar AsymmetricCryptoPublicKey
 scalar AuthenticatedSessionID
 scalar URLText
 scalar RegularExpression
@@ -2457,9 +2592,16 @@ interface AuthenticationIdentity {
   principal: IdentityPrincipal!
 }
 
+interface AuthorizationClaimCryptoKey {
+  claimType : AuthorizationClaimType!
+  keyId : String!
+  key : AsymmetricCryptoPublicKey!
+}
+
 interface AuthenticatedSession {
   claimType : AuthorizationClaimType!
   claimMedium : AuthorizationClaimMedium!
+  claimKey : AuthorizationClaimCryptoKey
   sessionID: AuthenticatedSessionID!
   type: AuthenticatedSessionType!
   identity: AuthenticationIdentity!
@@ -2576,13 +2718,15 @@ type HarvestedResources {
 }
 
 type Query {
-  configs(sessionID : AuthenticatedSessionID! = "HTTP_HEADER") : [Configuration]
-  config(sessionID : AuthenticatedSessionID! = "HTTP_HEADER", name : ConfigurationName!): Configuration
-  urlsInText(sessionID : AuthenticatedSessionID! = "HTTP_HEADER", text: String!): HarvestedResources
+  asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
+  asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
+  configs(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER") : [Configuration]
+  config(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", name : ConfigurationName!): Configuration
+  urlsInText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text: String!): HarvestedResources
 }
 
 type Mutation {
   establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
-  saveURLsinText(sessionID : AuthenticatedSessionID! = "HTTP_HEADER", text : String!) : HarvestedResources
+  saveURLsinText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text : String!) : HarvestedResources
 }
 `)

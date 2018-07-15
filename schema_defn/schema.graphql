@@ -2,6 +2,7 @@
 # scalar MediumText
 # scalar LargeText
 # scalar ExtraLargeText
+scalar AsymmetricCryptoPublicKey
 scalar AuthenticatedSessionID
 scalar URLText
 scalar RegularExpression
@@ -54,9 +55,16 @@ interface AuthenticationIdentity {
   principal: IdentityPrincipal!
 }
 
+interface AuthorizationClaimCryptoKey {
+  claimType : AuthorizationClaimType!
+  keyId : String!
+  key : AsymmetricCryptoPublicKey!
+}
+
 interface AuthenticatedSession {
   claimType : AuthorizationClaimType!
   claimMedium : AuthorizationClaimMedium!
+  claimKey : AuthorizationClaimCryptoKey
   sessionID: AuthenticatedSessionID!
   type: AuthenticatedSessionType!
   identity: AuthenticationIdentity!
@@ -173,6 +181,8 @@ type HarvestedResources {
 }
 
 type Query {
+  asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
+  asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
   configs(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER") : [Configuration]
   config(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", name : ConfigurationName!): Configuration
   urlsInText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text: String!): HarvestedResources

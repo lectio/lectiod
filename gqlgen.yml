@@ -4,6 +4,8 @@ exec:
 model:
   filename: schema_defn/models_concrete_generated.go
 models:
+  AsymmetricCryptoPublicKey:
+    model: github.com/lectio/lectiod/schema_defn.AsymmetricCryptoPublicKey
   AuthenticatedSession:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSession
   AuthenticatedSessionID:

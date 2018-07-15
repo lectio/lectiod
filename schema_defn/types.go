@@ -15,6 +15,7 @@ type RegularExpression string
 type ErrorMessage string
 type ConfigurationName string
 
+type AsymmetricCryptoPublicKey string
 type IdentityPrincipal string
 type IdentityPassword string
 type IdentityKey string
@@ -82,6 +83,18 @@ func (t *AuthenticatedSessionID) UnmarshalGQL(v interface{}) error {
 	str, err := graphql.UnmarshalString(v)
 	if err == nil {
 		*t = AuthenticatedSessionID(str)
+	}
+	return err
+}
+
+func (t AsymmetricCryptoPublicKey) MarshalGQL(w io.Writer) {
+	graphql.MarshalString(string(t)).MarshalGQL(w)
+}
+
+func (t *AsymmetricCryptoPublicKey) UnmarshalGQL(v interface{}) error {
+	str, err := graphql.UnmarshalString(v)
+	if err == nil {
+		*t = AsymmetricCryptoPublicKey(str)
 	}
 	return err
 }

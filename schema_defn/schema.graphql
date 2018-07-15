@@ -2,6 +2,7 @@
 # scalar MediumText
 # scalar LargeText
 # scalar ExtraLargeText
+scalar AuthenticatedSessionID
 scalar URLText
 scalar RegularExpression
 scalar ErrorMessage
@@ -29,7 +30,6 @@ enum AuthenticationType {
 }
 
 enum AuthenticatedSessionType {
-  SIMULATED
   EPHEMERAL
 }
 
@@ -44,6 +44,7 @@ interface AuthenticatedSession {
   type: AuthenticatedSessionType!
   identity: AuthenticationIdentity!
   timeOut: AuthenticatedSessionTimeout!
+  configName : ConfigurationName
 }
 
 interface Party {
@@ -154,12 +155,12 @@ type HarvestedResources {
 }
 
 type Query {
-  configs : [Configuration]
-  config(name : ConfigurationName = "DEFAULT"): Configuration
-  urlsInText(config : ConfigurationName = "DEFAULT", text: String!): HarvestedResources
+  configs(sessionID : AuthenticatedSessionID!) : [Configuration]
+  config(sessionID : AuthenticatedSessionID!, name : ConfigurationName!): Configuration
+  urlsInText(sessionID : AuthenticatedSessionID!, text: String!): HarvestedResources
 }
 
 type Mutation {
-  discoverURLsinText(config : ConfigurationName = "DEFAULT", text : String!) : HarvestedResources
-  # establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  saveURLsinText(sessionID : AuthenticatedSessionID!, text : String!) : HarvestedResources
 }

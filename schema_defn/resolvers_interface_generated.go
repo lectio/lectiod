@@ -25,11 +25,12 @@ func NewExecutableSchema(resolvers ResolverRoot) graphql.ExecutableSchema {
 }
 
 type Resolvers interface {
-	Mutation_discoverURLsinText(ctx context.Context, config ConfigurationName, text string) (*HarvestedResources, error)
+	Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
+	Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
 
-	Query_configs(ctx context.Context) ([]*Configuration, error)
-	Query_config(ctx context.Context, name ConfigurationName) (*Configuration, error)
-	Query_urlsInText(ctx context.Context, config ConfigurationName, text string) (*HarvestedResources, error)
+	Query_configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error)
+	Query_config(ctx context.Context, sessionID AuthenticatedSessionID, name ConfigurationName) (*Configuration, error)
+	Query_urlsInText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
 }
 
 type ResolverRoot interface {
@@ -37,32 +38,37 @@ type ResolverRoot interface {
 	Query() QueryResolver
 }
 type MutationResolver interface {
-	DiscoverURLsinText(ctx context.Context, config ConfigurationName, text string) (*HarvestedResources, error)
+	EstablishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
+	SaveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
 }
 type QueryResolver interface {
-	Configs(ctx context.Context) ([]*Configuration, error)
-	Config(ctx context.Context, name ConfigurationName) (*Configuration, error)
-	UrlsInText(ctx context.Context, config ConfigurationName, text string) (*HarvestedResources, error)
+	Configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error)
+	Config(ctx context.Context, sessionID AuthenticatedSessionID, name ConfigurationName) (*Configuration, error)
+	UrlsInText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
 }
 
 type shortMapper struct {
 	r ResolverRoot
 }
 
-func (s shortMapper) Mutation_discoverURLsinText(ctx context.Context, config ConfigurationName, text string) (*HarvestedResources, error) {
-	return s.r.Mutation().DiscoverURLsinText(ctx, config, text)
+func (s shortMapper) Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error) {
+	return s.r.Mutation().EstablishSimulatedSession(ctx, config)
 }
 
-func (s shortMapper) Query_configs(ctx context.Context) ([]*Configuration, error) {
-	return s.r.Query().Configs(ctx)
+func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error) {
+	return s.r.Mutation().SaveURLsinText(ctx, sessionID, text)
 }
 
-func (s shortMapper) Query_config(ctx context.Context, name ConfigurationName) (*Configuration, error) {
-	return s.r.Query().Config(ctx, name)
+func (s shortMapper) Query_configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error) {
+	return s.r.Query().Configs(ctx, sessionID)
 }
 
-func (s shortMapper) Query_urlsInText(ctx context.Context, config ConfigurationName, text string) (*HarvestedResources, error) {
-	return s.r.Query().UrlsInText(ctx, config, text)
+func (s shortMapper) Query_config(ctx context.Context, sessionID AuthenticatedSessionID, name ConfigurationName) (*Configuration, error) {
+	return s.r.Query().Config(ctx, sessionID, name)
+}
+
+func (s shortMapper) Query_urlsInText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error) {
+	return s.r.Query().UrlsInText(ctx, sessionID, text)
 }
 
 type executableSchema struct {
@@ -640,8 +646,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel []query.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "discoverURLsinText":
-			out.Values[i] = ec._Mutation_discoverURLsinText(ctx, field)
+		case "establishSimulatedSession":
+			out.Values[i] = ec._Mutation_establishSimulatedSession(ctx, field)
+		case "saveURLsinText":
+			out.Values[i] = ec._Mutation_saveURLsinText(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -650,7 +658,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel []query.Selection
 	return out
 }
 
-func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
 	var arg0 ConfigurationName
 	if tmp, ok := field.Args["config"]; ok {
@@ -671,6 +679,38 @@ func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, fi
 	}
 
 	args["config"] = arg0
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Mutation"
+	rctx.Args = args
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return ec.resolvers.Mutation_establishSimulatedSession(ctx, args["config"].(ConfigurationName))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(AuthenticatedSession)
+	return ec._AuthenticatedSession(ctx, field.Selections, &res)
+}
+
+func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	args := map[string]interface{}{}
+	var arg0 AuthenticatedSessionID
+	if tmp, ok := field.Args["sessionID"]; ok {
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["sessionID"] = arg0
 	var arg1 string
 	if tmp, ok := field.Args["text"]; ok {
 		var err error
@@ -688,7 +728,7 @@ func (ec *executionContext) _Mutation_discoverURLsinText(ctx context.Context, fi
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_discoverURLsinText(ctx, args["config"].(ConfigurationName), args["text"].(string))
+		return ec.resolvers.Mutation_saveURLsinText(ctx, args["sessionID"].(AuthenticatedSessionID), args["text"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1057,9 +1097,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel []query.Selection) g
 }
 
 func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	args := map[string]interface{}{}
+	var arg0 AuthenticatedSessionID
+	if tmp, ok := field.Args["sessionID"]; ok {
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["sessionID"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "Query",
-		Args:   nil,
+		Args:   args,
 		Field:  field,
 	})
 	return graphql.Defer(func() (ret graphql.Marshaler) {
@@ -1072,7 +1123,7 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_configs(ctx)
+			return ec.resolvers.Query_configs(ctx, args["sessionID"].(AuthenticatedSessionID))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1100,16 +1151,8 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 
 func (ec *executionContext) _Query_config(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 ConfigurationName
-	if tmp, ok := field.Args["name"]; ok {
-		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
-		if err != nil {
-			ec.Error(ctx, err)
-			return graphql.Null
-		}
-	} else {
-		var tmp interface{} = "DEFAULT"
+	var arg0 AuthenticatedSessionID
+	if tmp, ok := field.Args["sessionID"]; ok {
 		var err error
 		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
@@ -1117,8 +1160,17 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 			return graphql.Null
 		}
 	}
-
-	args["name"] = arg0
+	args["sessionID"] = arg0
+	var arg1 ConfigurationName
+	if tmp, ok := field.Args["name"]; ok {
+		var err error
+		err = (&arg1).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["name"] = arg1
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "Query",
 		Args:   args,
@@ -1134,7 +1186,7 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_config(ctx, args["name"].(ConfigurationName))
+			return ec.resolvers.Query_config(ctx, args["sessionID"].(AuthenticatedSessionID), args["name"].(ConfigurationName))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1153,16 +1205,8 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 
 func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 ConfigurationName
-	if tmp, ok := field.Args["config"]; ok {
-		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
-		if err != nil {
-			ec.Error(ctx, err)
-			return graphql.Null
-		}
-	} else {
-		var tmp interface{} = "DEFAULT"
+	var arg0 AuthenticatedSessionID
+	if tmp, ok := field.Args["sessionID"]; ok {
 		var err error
 		err = (&arg0).UnmarshalGQL(tmp)
 		if err != nil {
@@ -1170,8 +1214,7 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 			return graphql.Null
 		}
 	}
-
-	args["config"] = arg0
+	args["sessionID"] = arg0
 	var arg1 string
 	if tmp, ok := field.Args["text"]; ok {
 		var err error
@@ -1197,7 +1240,7 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_urlsInText(ctx, args["config"].(ConfigurationName), args["text"].(string))
+			return ec.resolvers.Query_urlsInText(ctx, args["sessionID"].(AuthenticatedSessionID), args["text"].(string))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -2326,6 +2369,7 @@ var parsedSchema = schema.MustParse(`# scalar SmallText
 # scalar MediumText
 # scalar LargeText
 # scalar ExtraLargeText
+scalar AuthenticatedSessionID
 scalar URLText
 scalar RegularExpression
 scalar ErrorMessage
@@ -2353,7 +2397,6 @@ enum AuthenticationType {
 }
 
 enum AuthenticatedSessionType {
-  SIMULATED
   EPHEMERAL
 }
 
@@ -2368,6 +2411,7 @@ interface AuthenticatedSession {
   type: AuthenticatedSessionType!
   identity: AuthenticationIdentity!
   timeOut: AuthenticatedSessionTimeout!
+  configName : ConfigurationName
 }
 
 interface Party {
@@ -2478,13 +2522,13 @@ type HarvestedResources {
 }
 
 type Query {
-  configs : [Configuration]
-  config(name : ConfigurationName = "DEFAULT"): Configuration
-  urlsInText(config : ConfigurationName = "DEFAULT", text: String!): HarvestedResources
+  configs(sessionID : AuthenticatedSessionID!) : [Configuration]
+  config(sessionID : AuthenticatedSessionID!, name : ConfigurationName!): Configuration
+  urlsInText(sessionID : AuthenticatedSessionID!, text: String!): HarvestedResources
 }
 
 type Mutation {
-  discoverURLsinText(config : ConfigurationName = "DEFAULT", text : String!) : HarvestedResources
-  # establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  saveURLsinText(sessionID : AuthenticatedSessionID!, text : String!) : HarvestedResources
 }
 `)

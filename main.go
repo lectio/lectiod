@@ -14,6 +14,6 @@ func main() {
 
 	graphQLHTTPServer := server.CreateGraphQLOverHTTPServer(observatory)
 
-	fmt.Printf("Listening on %s", graphQLHTTPServer.Addr)
+	fmt.Printf("Listening on %s, try http://localhost%s/playground", graphQLHTTPServer.Addr, graphQLHTTPServer.Addr)
 	log.Fatal(graphQLHTTPServer.ListenAndServe())
 }

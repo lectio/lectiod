@@ -4,6 +4,10 @@ exec:
 model:
   filename: schema_defn/models_concrete_generated.go
 models:
+  AuthenticatedSession:
+    model: github.com/lectio/lectiod/schema_defn.AuthenticatedSession
+  AuthenticatedSessionID:
+    model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionID
   AuthenticatedSessionTimeout:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionTimeout
   ConfigurationName:

@@ -16,9 +16,11 @@ import (
 
 // Service is the overall GraphQL service handler
 type SchemaResolvers struct {
-	defaultConfig *Configuration
-	configs       ConfigurationsMap
-	observatory   observe.Observatory
+	defaultConfig    *Configuration
+	configs          ConfigurationsMap
+	sessions         AuthenticatedSessionsMap
+	observatory      observe.Observatory
+	simulatedSession schema.AuthenticatedSession
 }
 
 // NewService creates the GraphQL driver
@@ -28,6 +30,10 @@ func NewSchemaResolvers(observatory observe.Observatory, store *storage.FileStor
 	result.defaultConfig = NewConfiguration(result, DefaultConfigurationName, store)
 	result.configs = make(ConfigurationsMap)
 	result.configs[DefaultConfigurationName] = result.defaultConfig
+
+	result.simulatedSession = NewSimulatedSession(DefaultConfigurationName)
+	result.sessions = make(AuthenticatedSessionsMap)
+	result.sessions[result.simulatedSession.GetAuthenticatedSessionID()] = result.simulatedSession
 	return result
 }
 
@@ -35,7 +41,29 @@ func (sr *SchemaResolvers) DefaultConfiguration() *Configuration {
 	return sr.defaultConfig
 }
 
-func (sr *SchemaResolvers) Query_configs(ctx context.Context) ([]*schema.Configuration, error) {
+func (sr *SchemaResolvers) ValidateSession(ctx context.Context, sessionID schema.AuthenticatedSessionID) (schema.AuthenticatedSession, error) {
+	span, ctx := sr.observatory.StartTraceFromContext(ctx, "ValidateSession")
+	defer span.Finish()
+
+	session := sr.sessions[sessionID]
+	if session == nil {
+		error := fmt.Errorf("Session '%v' is invalid", sessionID)
+		opentrext.Error.Set(span, true)
+		span.LogFields(log.Error(error))
+		return nil, error
+	}
+	return session, nil
+}
+
+func (sr *SchemaResolvers) Query_configs(ctx context.Context, sessionID schema.AuthenticatedSessionID) ([]*schema.Configuration, error) {
+	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_configs")
+	defer span.Finish()
+
+	_, sessErr := sr.ValidateSession(ctx, sessionID)
+	if sessErr != nil {
+		return nil, sessErr
+	}
+
 	result := make([]*schema.Configuration, 0, len(sr.configs))
 	for _, value := range sr.configs {
 		result = append(result, value.settings)
@@ -44,7 +72,15 @@ func (sr *SchemaResolvers) Query_configs(ctx context.Context) ([]*schema.Configu
 }
 
 // Query_config implements GraphQL query endpoint
-func (sr *SchemaResolvers) Query_config(ctx context.Context, name schema.ConfigurationName) (*schema.Configuration, error) {
+func (sr *SchemaResolvers) Query_config(ctx context.Context, sessionID schema.AuthenticatedSessionID, name schema.ConfigurationName) (*schema.Configuration, error) {
+	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_config")
+	defer span.Finish()
+
+	_, sessErr := sr.ValidateSession(ctx, sessionID)
+	if sessErr != nil {
+		return nil, sessErr
+	}
+
 	config := sr.configs[name]
 	if config != nil {
 		return config.settings, nil
@@ -52,13 +88,18 @@ func (sr *SchemaResolvers) Query_config(ctx context.Context, name schema.Configu
 	return nil, nil
 }
 
-func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, config schema.ConfigurationName, text string) (*schema.HarvestedResources, error) {
+func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, sessionID schema.AuthenticatedSessionID, text string) (*schema.HarvestedResources, error) {
 	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_urlsInText")
 	defer span.Finish()
 
-	conf := sr.configs[config]
+	authSess, sessErr := sr.ValidateSession(ctx, sessionID)
+	if sessErr != nil {
+		return nil, sessErr
+	}
+
+	conf := sr.configs[authSess.GetConfigurationName()]
 	if conf == nil {
-		error := fmt.Errorf("Unable to run query: config '%s' not found", config)
+		error := fmt.Errorf("Unable to run query: config '%s' not found", authSess.GetConfigurationName())
 		opentrext.Error.Set(span, true)
 		span.LogFields(log.Error(error))
 		return nil, error
@@ -118,10 +159,10 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, config schema.C
 	return result, nil
 }
 
-func (sr *SchemaResolvers) Mutation_discoverURLsinText(ctx context.Context, config schema.ConfigurationName, text string) (*schema.HarvestedResources, error) {
-	return sr.Query_urlsInText(ctx, config, text)
+func (sr *SchemaResolvers) Mutation_establishSimulatedSession(ctx context.Context, config schema.ConfigurationName) (schema.AuthenticatedSession, error) {
+	return sr.simulatedSession, nil
 }
 
-// func (sr *SchemaResolvers) Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error) {
-
-// }
+func (sr *SchemaResolvers) Mutation_saveURLsinText(ctx context.Context, sessionID schema.AuthenticatedSessionID, text string) (*schema.HarvestedResources, error) {
+	return sr.Query_urlsInText(ctx, sessionID, text)
+}

@@ -8,7 +8,6 @@ import (
 	strconv "strconv"
 )
 
-type AuthenticatedSession interface{}
 type AuthenticationIdentity interface{}
 type Configuration struct {
 	Name    ConfigurationName              `json:"name"`
@@ -97,13 +96,12 @@ type UserIdentity struct {
 type AuthenticatedSessionType string
 
 const (
-	AuthenticatedSessionTypeSimulated AuthenticatedSessionType = "SIMULATED"
 	AuthenticatedSessionTypeEphemeral AuthenticatedSessionType = "EPHEMERAL"
 )
 
 func (e AuthenticatedSessionType) IsValid() bool {
 	switch e {
-	case AuthenticatedSessionTypeSimulated, AuthenticatedSessionTypeEphemeral:
+	case AuthenticatedSessionTypeEphemeral:
 		return true
 	}
 	return false

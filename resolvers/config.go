@@ -14,6 +14,7 @@ import (
 )
 
 type ConfigurationsMap map[schema.ConfigurationName]*Configuration
+type AuthenticatedSessionsMap map[schema.AuthenticatedSessionID]schema.AuthenticatedSession
 
 const (
 	DefaultConfigurationName schema.ConfigurationName = "DEFAULT"

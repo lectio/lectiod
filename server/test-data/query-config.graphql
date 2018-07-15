@@ -1,5 +1,5 @@
 query {
-  config {
+  config(sessionID: "0", name: "DEFAULT") {
     storage { type, filesys { basePath } }
     harvest { ignoreURLsRegExprs, removeParamsFromURLsRegEx, followHTMLRedirects}
     errors

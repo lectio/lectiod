@@ -25,12 +25,27 @@ scalar IdentityKey
 
 scalar AuthenticatedSessionTimeout
 
+enum AuthorizationClaimType {
+  SESSION_ID
+  JWT
+}
+
+enum AuthorizationClaimMedium {
+  HTTP_HEADER
+  PARAM_VALUE  
+}
+
 enum AuthenticationType {
   SINGLE_FACTOR
 }
 
 enum AuthenticatedSessionType {
   EPHEMERAL
+}
+
+enum AuthenticatedSessionTmeoutType {
+  SLIDING_WINDOW
+  ABSOLUTE
 }
 
 interface AuthenticationIdentity {
@@ -40,9 +55,12 @@ interface AuthenticationIdentity {
 }
 
 interface AuthenticatedSession {
-  id: ID!
+  claimType : AuthorizationClaimType!
+  claimMedium : AuthorizationClaimMedium!
+  sessionID: AuthenticatedSessionID!
   type: AuthenticatedSessionType!
   identity: AuthenticationIdentity!
+  timeOutType : AuthenticatedSessionTmeoutType!
   timeOut: AuthenticatedSessionTimeout!
   configName : ConfigurationName
 }
@@ -155,12 +173,12 @@ type HarvestedResources {
 }
 
 type Query {
-  configs(sessionID : AuthenticatedSessionID!) : [Configuration]
-  config(sessionID : AuthenticatedSessionID!, name : ConfigurationName!): Configuration
-  urlsInText(sessionID : AuthenticatedSessionID!, text: String!): HarvestedResources
+  configs(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER") : [Configuration]
+  config(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", name : ConfigurationName!): Configuration
+  urlsInText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text: String!): HarvestedResources
 }
 
 type Mutation {
   establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
-  saveURLsinText(sessionID : AuthenticatedSessionID!, text : String!) : HarvestedResources
+  saveURLsinText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text : String!) : HarvestedResources
 }

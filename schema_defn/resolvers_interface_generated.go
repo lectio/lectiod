@@ -709,7 +709,16 @@ func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field 
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
+	} else {
+		var tmp interface{} = "HTTP_HEADER"
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
 	}
+
 	args["sessionID"] = arg0
 	var arg1 string
 	if tmp, ok := field.Args["text"]; ok {
@@ -1106,7 +1115,16 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
+	} else {
+		var tmp interface{} = "HTTP_HEADER"
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
 	}
+
 	args["sessionID"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "Query",
@@ -1159,7 +1177,16 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
+	} else {
+		var tmp interface{} = "HTTP_HEADER"
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
 	}
+
 	args["sessionID"] = arg0
 	var arg1 ConfigurationName
 	if tmp, ok := field.Args["name"]; ok {
@@ -1213,7 +1240,16 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
+	} else {
+		var tmp interface{} = "HTTP_HEADER"
+		var err error
+		err = (&arg0).UnmarshalGQL(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
 	}
+
 	args["sessionID"] = arg0
 	var arg1 string
 	if tmp, ok := field.Args["text"]; ok {
@@ -2392,12 +2428,27 @@ scalar IdentityKey
 
 scalar AuthenticatedSessionTimeout
 
+enum AuthorizationClaimType {
+  SESSION_ID
+  JWT
+}
+
+enum AuthorizationClaimMedium {
+  HTTP_HEADER
+  PARAM_VALUE  
+}
+
 enum AuthenticationType {
   SINGLE_FACTOR
 }
 
 enum AuthenticatedSessionType {
   EPHEMERAL
+}
+
+enum AuthenticatedSessionTmeoutType {
+  SLIDING_WINDOW
+  ABSOLUTE
 }
 
 interface AuthenticationIdentity {
@@ -2407,9 +2458,12 @@ interface AuthenticationIdentity {
 }
 
 interface AuthenticatedSession {
-  id: ID!
+  claimType : AuthorizationClaimType!
+  claimMedium : AuthorizationClaimMedium!
+  sessionID: AuthenticatedSessionID!
   type: AuthenticatedSessionType!
   identity: AuthenticationIdentity!
+  timeOutType : AuthenticatedSessionTmeoutType!
   timeOut: AuthenticatedSessionTimeout!
   configName : ConfigurationName
 }
@@ -2522,13 +2576,13 @@ type HarvestedResources {
 }
 
 type Query {
-  configs(sessionID : AuthenticatedSessionID!) : [Configuration]
-  config(sessionID : AuthenticatedSessionID!, name : ConfigurationName!): Configuration
-  urlsInText(sessionID : AuthenticatedSessionID!, text: String!): HarvestedResources
+  configs(sessionID : AuthenticatedSessionID! = "HTTP_HEADER") : [Configuration]
+  config(sessionID : AuthenticatedSessionID! = "HTTP_HEADER", name : ConfigurationName!): Configuration
+  urlsInText(sessionID : AuthenticatedSessionID! = "HTTP_HEADER", text: String!): HarvestedResources
 }
 
 type Mutation {
   establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
-  saveURLsinText(sessionID : AuthenticatedSessionID!, text : String!) : HarvestedResources
+  saveURLsinText(sessionID : AuthenticatedSessionID! = "HTTP_HEADER", text : String!) : HarvestedResources
 }
 `)

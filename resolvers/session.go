@@ -5,16 +5,19 @@ import (
 )
 
 type simulatedSession struct {
+	claimType   schema.AuthorizationClaimType
+	claimMedium schema.AuthorizationClaimMedium
 	sessionID   schema.AuthenticatedSessionID
 	sessionType schema.AuthenticatedSessionType
 	identity    schema.AuthenticationIdentity
+	timeOutType schema.AuthenticatedSessionTmeoutType
 	timeOut     schema.AuthenticatedSessionTimeout
 	configName  schema.ConfigurationName
 }
 
 func NewSimulatedSession(configName schema.ConfigurationName) schema.AuthenticatedSession {
 	result := simulatedSession{}
-	result.sessionID = schema.AuthenticatedSessionID(0)
+	result.sessionID = schema.AuthenticatedSessionID("SIMULATED")
 	result.configName = configName
 	return &result
 }

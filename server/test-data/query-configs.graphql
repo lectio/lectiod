@@ -1,5 +1,5 @@
 query {
-  configs(sessionID: "0") {
+  configs(sessionID: "SIMULATED") {
     name
     storage { type, filesys { basePath } }
     harvest { ignoreURLsRegExprs, removeParamsFromURLsRegEx, followHTMLRedirects}

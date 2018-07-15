@@ -47,7 +47,7 @@ func (sr *SchemaResolvers) ValidateSession(ctx context.Context, sessionID schema
 
 	session := sr.sessions[sessionID]
 	if session == nil {
-		error := fmt.Errorf("Session '%v' is invalid", sessionID)
+		error := fmt.Errorf("Session '%v' is invalid, %d available", sessionID, len(sr.sessions))
 		opentrext.Error.Set(span, true)
 		span.LogFields(log.Error(error))
 		return nil, error

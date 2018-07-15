@@ -93,6 +93,42 @@ type UserIdentity struct {
 	Person    Person             `json:"person"`
 }
 
+type AuthenticatedSessionTmeoutType string
+
+const (
+	AuthenticatedSessionTmeoutTypeSlidingWindow AuthenticatedSessionTmeoutType = "SLIDING_WINDOW"
+	AuthenticatedSessionTmeoutTypeAbsolute      AuthenticatedSessionTmeoutType = "ABSOLUTE"
+)
+
+func (e AuthenticatedSessionTmeoutType) IsValid() bool {
+	switch e {
+	case AuthenticatedSessionTmeoutTypeSlidingWindow, AuthenticatedSessionTmeoutTypeAbsolute:
+		return true
+	}
+	return false
+}
+
+func (e AuthenticatedSessionTmeoutType) String() string {
+	return string(e)
+}
+
+func (e *AuthenticatedSessionTmeoutType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthenticatedSessionTmeoutType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AuthenticatedSessionTmeoutType", str)
+	}
+	return nil
+}
+
+func (e AuthenticatedSessionTmeoutType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type AuthenticatedSessionType string
 
 const (
@@ -160,6 +196,78 @@ func (e *AuthenticationType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AuthenticationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AuthorizationClaimMedium string
+
+const (
+	AuthorizationClaimMediumHttpHeader AuthorizationClaimMedium = "HTTP_HEADER"
+	AuthorizationClaimMediumParamValue AuthorizationClaimMedium = "PARAM_VALUE"
+)
+
+func (e AuthorizationClaimMedium) IsValid() bool {
+	switch e {
+	case AuthorizationClaimMediumHttpHeader, AuthorizationClaimMediumParamValue:
+		return true
+	}
+	return false
+}
+
+func (e AuthorizationClaimMedium) String() string {
+	return string(e)
+}
+
+func (e *AuthorizationClaimMedium) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthorizationClaimMedium(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AuthorizationClaimMedium", str)
+	}
+	return nil
+}
+
+func (e AuthorizationClaimMedium) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AuthorizationClaimType string
+
+const (
+	AuthorizationClaimTypeSessionId AuthorizationClaimType = "SESSION_ID"
+	AuthorizationClaimTypeJwt       AuthorizationClaimType = "JWT"
+)
+
+func (e AuthorizationClaimType) IsValid() bool {
+	switch e {
+	case AuthorizationClaimTypeSessionId, AuthorizationClaimTypeJwt:
+		return true
+	}
+	return false
+}
+
+func (e AuthorizationClaimType) String() string {
+	return string(e)
+}
+
+func (e *AuthorizationClaimType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthorizationClaimType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AuthorizationClaimType", str)
+	}
+	return nil
+}
+
+func (e AuthorizationClaimType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

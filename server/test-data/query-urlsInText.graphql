@@ -1,5 +1,5 @@
 query {
-  urlsInText(sessionID: "0", text: "Test a good URL https://t.co/csWpQq5mbn which will redirect to a URL we want to ignore, with utm_* params, then one we want to ignore https://t.co/xNzrxkHE1u") {
+  urlsInText(sessionID: "SIMULATED", text: "Test a good URL https://t.co/csWpQq5mbn which will redirect to a URL we want to ignore, with utm_* params, then one we want to ignore https://t.co/xNzrxkHE1u") {
     text
     harvested { urls { original, cleaned, resolved, final}, isHTMLRedirect, redirectURL, isCleaned }
     ignored {urls { original, cleaned, resolved, final}, reason}

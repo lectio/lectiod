@@ -18,9 +18,9 @@ dep:
 	dep ensure
 	dep ensure -update
 
-## Generate the GraphQL models and resolvers in graph subpackage
+## Generate the GraphQL models and resolvers in graph subpackage, using gqlgen.yml as spec
 generate-graphql:
-	go run vendor/github.com/vektah/gqlgen/main.go -schema schema_defn/schema.graphql -typemap schema_defn/schema.types.json -models schema_defn/models_concrete_generated.go -out schema_defn/resolvers_interface_generated.go
+	go run vendor/github.com/vektah/gqlgen/main.go
 
 ## Generate all code (such as the GraphQL subpackage)
 generate-all: generate-graphql

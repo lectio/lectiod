@@ -1,0 +1,30 @@
+schema: schema_defn/schema.graphql
+exec:
+  filename: schema_defn/resolvers_interface_generated.go
+model:
+  filename: schema_defn/models_concrete_generated.go
+models:
+  AuthenticatedSessionTimeout:
+    model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionTimeout
+  ConfigurationName:
+    model: github.com/lectio/lectiod/schema_defn.ConfigurationName
+  ErrorMessage:
+    model: github.com/lectio/lectiod/schema_defn.ErrorMessage
+  ExtraLargeText:
+    model: github.com/lectio/lectiod/schema_defn.ExtraLargeText
+  IdentityKey:
+    model: github.com/lectio/lectiod/schema_defn.IdentityKey
+  IdentityPassword:
+    model: github.com/lectio/lectiod/schema_defn.IdentityPassword
+  IdentityPrincipal:
+    model: github.com/lectio/lectiod/schema_defn.IdentityPrincipal
+  LargeText:
+    model: github.com/lectio/lectiod/schema_defn.LargeText
+  MediumText:
+    model: github.com/lectio/lectiod/schema_defn.MediumText
+  RegularExpression:
+    model: github.com/lectio/lectiod/schema_defn.RegularExpression
+  SmallText:
+    model: github.com/lectio/lectiod/schema_defn.SmallText
+  URLText:
+    model: github.com/lectio/lectiod/schema_defn.URLText

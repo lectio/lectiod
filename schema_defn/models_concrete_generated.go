@@ -14,15 +14,15 @@ type Configuration struct {
 	Name    ConfigurationName              `json:"name"`
 	Storage StorageConfiguration           `json:"storage"`
 	Harvest HarvestDirectivesConfiguration `json:"harvest"`
-	Errors  []ErrorMessage                 `json:"errors"`
+	Errors  []*ErrorMessage                `json:"errors"`
 }
 type FileStorageConfiguration struct {
 	BasePath string `json:"basePath"`
 }
 type HarvestDirectivesConfiguration struct {
-	IgnoreURLsRegExprs        []RegularExpression `json:"ignoreURLsRegExprs"`
-	RemoveParamsFromURLsRegEx []RegularExpression `json:"removeParamsFromURLsRegEx"`
-	FollowHTMLRedirects       bool                `json:"followHTMLRedirects"`
+	IgnoreURLsRegExprs        []*RegularExpression `json:"ignoreURLsRegExprs"`
+	RemoveParamsFromURLsRegEx []*RegularExpression `json:"removeParamsFromURLsRegEx"`
+	FollowHTMLRedirects       bool                 `json:"followHTMLRedirects"`
 }
 type HarvestedResource struct {
 	Urls           HarvestedResourceUrls `json:"urls"`
@@ -37,35 +37,35 @@ type HarvestedResourceUrls struct {
 	Resolved URLText `json:"resolved"`
 }
 type HarvestedResources struct {
-	Text      string                `json:"text"`
-	Harvested []HarvestedResource   `json:"harvested"`
-	Ignored   []IgnoredResource     `json:"ignored"`
-	Invalid   []UnharvestedResource `json:"invalid"`
+	Text      string                 `json:"text"`
+	Harvested []*HarvestedResource   `json:"harvested"`
+	Ignored   []*IgnoredResource     `json:"ignored"`
+	Invalid   []*UnharvestedResource `json:"invalid"`
 }
 type IgnoredResource struct {
 	Urls   HarvestedResourceUrls `json:"urls"`
 	Reason string                `json:"reason"`
 }
 type Organization struct {
-	ID       string               `json:"id"`
-	Name     string               `json:"name"`
-	Units    []OrganizationalUnit `json:"units"`
-	Services []ServiceIdentity    `json:"services"`
+	ID       string                `json:"id"`
+	Name     string                `json:"name"`
+	Units    []*OrganizationalUnit `json:"units"`
+	Services []*ServiceIdentity    `json:"services"`
 }
 type OrganizationalUnit struct {
-	ID       string               `json:"id"`
-	Name     string               `json:"name"`
-	Units    []OrganizationalUnit `json:"units"`
-	Services []ServiceIdentity    `json:"services"`
+	ID       string                `json:"id"`
+	Name     string                `json:"name"`
+	Units    []*OrganizationalUnit `json:"units"`
+	Services []*ServiceIdentity    `json:"services"`
 }
 type Party interface{}
 type Person struct {
-	ID        string            `json:"id"`
-	Name      string            `json:"name"`
-	FirstName string            `json:"firstName"`
-	LastName  string            `json:"lastName"`
-	Users     []UserIdentity    `json:"users"`
-	Services  []ServiceIdentity `json:"services"`
+	ID        string             `json:"id"`
+	Name      string             `json:"name"`
+	FirstName string             `json:"firstName"`
+	LastName  string             `json:"lastName"`
+	Users     []*UserIdentity    `json:"users"`
+	Services  []*ServiceIdentity `json:"services"`
 }
 type ServiceIdentity struct {
 	ID        string             `json:"id"`
@@ -97,12 +97,13 @@ type UserIdentity struct {
 type AuthenticatedSessionType string
 
 const (
+	AuthenticatedSessionTypeSimulated AuthenticatedSessionType = "SIMULATED"
 	AuthenticatedSessionTypeEphemeral AuthenticatedSessionType = "EPHEMERAL"
 )
 
 func (e AuthenticatedSessionType) IsValid() bool {
 	switch e {
-	case AuthenticatedSessionTypeEphemeral:
+	case AuthenticatedSessionTypeSimulated, AuthenticatedSessionTypeEphemeral:
 		return true
 	}
 	return false

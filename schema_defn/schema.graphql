@@ -29,6 +29,7 @@ enum AuthenticationType {
 }
 
 enum AuthenticatedSessionType {
+  SIMULATED
   EPHEMERAL
 }
 
@@ -160,4 +161,5 @@ type Query {
 
 type Mutation {
   discoverURLsinText(config : ConfigurationName = "DEFAULT", text : String!) : HarvestedResources
+  # establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
 }

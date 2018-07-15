@@ -26,16 +26,17 @@ func (l *ignoreURLsRegExList) Add(config *schema.Configuration, value schema.Reg
 	if value != "" {
 		re, error := regexp.Compile(string(value))
 		if error != nil {
-			config.Errors = append(config.Errors, schema.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error())))
+			message := schema.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
+			config.Errors = append(config.Errors, &message)
 			return
 		}
 		*l = append(*l, re)
 	}
 }
 
-func (l *ignoreURLsRegExList) AddSeveral(config *schema.Configuration, values []schema.RegularExpression) {
+func (l *ignoreURLsRegExList) AddSeveral(config *schema.Configuration, values []*schema.RegularExpression) {
 	for _, value := range values {
-		l.Add(config, value)
+		l.Add(config, *value)
 	}
 }
 
@@ -53,16 +54,17 @@ func (l *cleanURLsRegExList) Add(config *schema.Configuration, value schema.Regu
 	if value != "" {
 		re, error := regexp.Compile(string(value))
 		if error != nil {
-			config.Errors = append(config.Errors, schema.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error())))
+			message := schema.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
+			config.Errors = append(config.Errors, &message)
 			return
 		}
 		*l = append(*l, re)
 	}
 }
 
-func (l *cleanURLsRegExList) AddSeveral(config *schema.Configuration, values []schema.RegularExpression) {
+func (l *cleanURLsRegExList) AddSeveral(config *schema.Configuration, values []*schema.RegularExpression) {
 	for _, value := range values {
-		l.Add(config, value)
+		l.Add(config, *value)
 	}
 }
 
@@ -97,8 +99,12 @@ func NewConfiguration(sr *SchemaResolvers, name schema.ConfigurationName, store 
 	result.settings.Storage.Type = schema.StorageTypeFileSystem
 	result.settings.Storage.Filesys = &store.Config
 
-	result.settings.Harvest.IgnoreURLsRegExprs = []schema.RegularExpression{`^https://twitter.com/(.*?)/status/(.*)$`, `https://t.co`}
-	result.settings.Harvest.RemoveParamsFromURLsRegEx = []schema.RegularExpression{`^utm_`}
+	twitterStatusRegExpr := schema.RegularExpression(`^https://twitter.com/(.*?)/status/(.*)$`)
+	twitterCommonErrorURLRegExpr := schema.RegularExpression(`https://t.co`)
+	utmRegExpr := schema.RegularExpression(`^utm_`)
+
+	result.settings.Harvest.IgnoreURLsRegExprs = []*schema.RegularExpression{&twitterStatusRegExpr, &twitterCommonErrorURLRegExpr}
+	result.settings.Harvest.RemoveParamsFromURLsRegEx = []*schema.RegularExpression{&utmRegExpr}
 	result.settings.Harvest.FollowHTMLRedirects = true
 	result.ConfigureContentHarvester(sr)
 

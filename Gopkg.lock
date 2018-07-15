@@ -59,7 +59,7 @@
   branch = "master"
   name = "github.com/lectio/harvester"
   packages = ["."]
-  revision = "8f4d939fbb83315348a6d9b78725cac51868e8e9"
+  revision = "dc4e9350fff7cbbb0367d6b814fcfe60abf1ba37"
 
 [[projects]]
   name = "github.com/opentracing/opentracing-go"
@@ -99,7 +99,7 @@
   branch = "master"
   name = "github.com/shah/observe-go"
   packages = ["."]
-  revision = "fb180091d841f1c5df8ca9ce0fa5bc2b37aaab18"
+  revision = "ca42ba4ed115b88c916e4e1876859844408774f2"
 
 [[projects]]
   name = "github.com/stretchr/testify"
@@ -141,7 +141,6 @@
   version = "v1.5.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/vektah/gqlgen"
   packages = [
     "graphql",
@@ -153,7 +152,8 @@
     "neelance/schema",
     "neelance/validation"
   ]
-  revision = "a39c63a5ef9dadec023241f049d511380dbce189"
+  revision = "381b34691fd93829e50ba8821412dc3467ec4821"
+  version = "0.3.0"
 
 [[projects]]
   branch = "master"
@@ -163,7 +163,7 @@
     "html",
     "html/atom"
   ]
-  revision = "afe8f62b1d6bbd81f31868121a50b06d8188e1f9"
+  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
 
 [[projects]]
   name = "gopkg.in/h2non/filetype.v1"
@@ -176,6 +176,12 @@
   version = "v1.0.5"
 
 [[projects]]
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
+
+[[projects]]
   name = "mvdan.cc/xurls"
   packages = ["."]
   revision = "d315b61cf6727664f310fa87b3197e9faf2a8513"
@@ -184,6 +190,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c7933a325ff75729159e785a03014f28e5cded8d35d4c76d619c458ad30d9bda"
+  inputs-digest = "c8fee6a7197cd32cd61c12f0045030932249a10b696ce496daeffcc26c10acf0"
   solver-name = "gps-cdcl"
   solver-version = 1

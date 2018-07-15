@@ -35,10 +35,10 @@ func (sr *SchemaResolvers) DefaultConfiguration() *Configuration {
 	return sr.defaultConfig
 }
 
-func (sr *SchemaResolvers) Query_configs(ctx context.Context) ([]schema.Configuration, error) {
-	result := make([]schema.Configuration, 0, len(sr.configs))
+func (sr *SchemaResolvers) Query_configs(ctx context.Context) ([]*schema.Configuration, error) {
+	result := make([]*schema.Configuration, 0, len(sr.configs))
 	for _, value := range sr.configs {
-		result = append(result, *value.settings)
+		result = append(result, value.settings)
 	}
 	return result, nil
 }
@@ -71,15 +71,15 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, config schema.C
 	for _, res := range r.Resources {
 		isURLValid, isDestValid := res.IsValid()
 		if !isURLValid {
-			result.Invalid = append(result.Invalid, schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: "Invalid URL"})
+			result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: "Invalid URL"})
 			continue
 		}
 		if !isDestValid {
 			isIgnored, ignoreReason := res.IsIgnored()
 			if isIgnored {
-				result.Invalid = append(result.Invalid, schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: fmt.Sprintf("Invalid URL Destination: %s", ignoreReason)})
+				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: fmt.Sprintf("Invalid URL Destination: %s", ignoreReason)})
 			} else {
-				result.Invalid = append(result.Invalid, schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: "Invalid URL Destination: unkown reason"})
+				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: "Invalid URL Destination: unkown reason"})
 			}
 			continue
 		}
@@ -90,7 +90,7 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, config schema.C
 
 		isIgnored, ignoreReason := res.IsIgnored()
 		if isIgnored {
-			result.Ignored = append(result.Ignored, schema.IgnoredResource{
+			result.Ignored = append(result.Ignored, &schema.IgnoredResource{
 				Urls: schema.HarvestedResourceUrls{
 					Original: schema.URLText(res.OriginalURLText()),
 					Final:    urlToString(finalURL),
@@ -103,7 +103,7 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, config schema.C
 		}
 
 		redirectURLText := schema.URLText(redirectURL)
-		result.Harvested = append(result.Harvested, schema.HarvestedResource{
+		result.Harvested = append(result.Harvested, &schema.HarvestedResource{
 			Urls: schema.HarvestedResourceUrls{
 				Original: schema.URLText(res.OriginalURLText()),
 				Final:    urlToString(finalURL),
@@ -121,3 +121,7 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, config schema.C
 func (sr *SchemaResolvers) Mutation_discoverURLsinText(ctx context.Context, config schema.ConfigurationName, text string) (*schema.HarvestedResources, error) {
 	return sr.Query_urlsInText(ctx, config, text)
 }
+
+// func (sr *SchemaResolvers) Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error) {
+
+// }

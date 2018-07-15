@@ -21,6 +21,7 @@ type IdentityPassword string
 type IdentityKey string
 
 type AuthenticatedSessionID string
+type AuthenticatedSessionsCount uint
 type AuthenticatedSessionTimeout uint
 
 func (t SmallText) MarshalGQL(w io.Writer) {
@@ -100,5 +101,9 @@ func (t *AsymmetricCryptoPublicKey) UnmarshalGQL(v interface{}) error {
 }
 
 func (t AuthenticatedSessionTimeout) MarshalGQL(w io.Writer) {
+	graphql.MarshalInt(int(t)).MarshalGQL(w)
+}
+
+func (t AuthenticatedSessionsCount) MarshalGQL(w io.Writer) {
 	graphql.MarshalInt(int(t)).MarshalGQL(w)
 }

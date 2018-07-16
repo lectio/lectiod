@@ -69,8 +69,8 @@ func createExecutableSchemaHandler(o observe.Observatory) http.HandlerFunc {
 	storage := storage.NewFileStorage("./tmp/diskv_data")
 	resolvers := resolvers.NewSchemaResolvers(o, storage)
 
+	// TODO Add error presenter and panic handlers: https://gqlgen.com/reference/errors/
 	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
-	// TODO Add health check handler
 
 	return handler.GraphQL(schema.MakeExecutableSchema(resolvers),
 		handler.ResolverMiddleware(createGraphQLObservableResolverMiddleware(o)),

@@ -181,18 +181,24 @@ type HarvestedResources {
   invalid : [UnharvestedResource]
 }
 
+input AuthorizationInput {
+  claimType : AuthorizationClaimType!
+  claimMedium : AuthorizationClaimMedium!
+  sessionID: AuthenticatedSessionID
+}
+
 type Query {
   asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
   asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
-  configs(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER") : [Configuration]
-  config(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", name : ConfigurationName!): Configuration
-  urlsInText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text: String!): HarvestedResources
+  configs(authorization : AuthorizationInput!) : [Configuration]
+  config(authorization : AuthorizationInput!, name : ConfigurationName!): Configuration
+  urlsInText(authorization : AuthorizationInput!, text: String!): HarvestedResources
 }
 
 type Mutation {
-  establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
-  refreshSession(sessionID : AuthenticatedSessionID!) : AuthenticatedSession
-  destroySession(sessionID : AuthenticatedSessionID!) : Boolean!
-  destroyAllSessions(superUserSessionID : AuthenticatedSessionID!) : AuthenticatedSessionsCount!
-  saveURLsinText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text : String!) : HarvestedResources
+  establishSimulatedSession(superUserAuthorization : AuthorizationInput!, config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  refreshSession(authorization : AuthorizationInput!) : AuthenticatedSession
+  destroySession(authorization : AuthorizationInput!) : Boolean!
+  destroyAllSessions(superUserAuthorization : AuthorizationInput!) : AuthenticatedSessionsCount!
+  saveURLsinText(authorization : AuthorizationInput!, text : String!) : HarvestedResources
 }

@@ -10,6 +10,11 @@ import (
 
 type AuthenticationIdentity interface{}
 type AuthorizationClaimCryptoKey interface{}
+type AuthorizationInput struct {
+	ClaimType   AuthorizationClaimType   `json:"claimType"`
+	ClaimMedium AuthorizationClaimMedium `json:"claimMedium"`
+	SessionID   *AuthenticatedSessionID  `json:"sessionID"`
+}
 type Configuration struct {
 	Name    ConfigurationName              `json:"name"`
 	Storage StorageConfiguration           `json:"storage"`

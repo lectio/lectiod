@@ -25,17 +25,17 @@ func NewExecutableSchema(resolvers ResolverRoot) graphql.ExecutableSchema {
 }
 
 type Resolvers interface {
-	Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
-	Mutation_refreshSession(ctx context.Context, sessionID AuthenticatedSessionID) (AuthenticatedSession, error)
-	Mutation_destroySession(ctx context.Context, sessionID AuthenticatedSessionID) (bool, error)
-	Mutation_destroyAllSessions(ctx context.Context, superUserSessionID AuthenticatedSessionID) (AuthenticatedSessionsCount, error)
-	Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
+	Mutation_establishSimulatedSession(ctx context.Context, superUserAuthorization AuthorizationInput, config ConfigurationName) (AuthenticatedSession, error)
+	Mutation_refreshSession(ctx context.Context, authorization AuthorizationInput) (AuthenticatedSession, error)
+	Mutation_destroySession(ctx context.Context, authorization AuthorizationInput) (bool, error)
+	Mutation_destroyAllSessions(ctx context.Context, superUserAuthorization AuthorizationInput) (AuthenticatedSessionsCount, error)
+	Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
 
 	Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
 	Query_asymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error)
-	Query_configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error)
-	Query_config(ctx context.Context, sessionID AuthenticatedSessionID, name ConfigurationName) (*Configuration, error)
-	Query_urlsInText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
+	Query_configs(ctx context.Context, authorization AuthorizationInput) ([]*Configuration, error)
+	Query_config(ctx context.Context, authorization AuthorizationInput, name ConfigurationName) (*Configuration, error)
+	Query_urlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
 }
 
 type ResolverRoot interface {
@@ -43,42 +43,42 @@ type ResolverRoot interface {
 	Query() QueryResolver
 }
 type MutationResolver interface {
-	EstablishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error)
-	RefreshSession(ctx context.Context, sessionID AuthenticatedSessionID) (AuthenticatedSession, error)
-	DestroySession(ctx context.Context, sessionID AuthenticatedSessionID) (bool, error)
-	DestroyAllSessions(ctx context.Context, superUserSessionID AuthenticatedSessionID) (AuthenticatedSessionsCount, error)
-	SaveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
+	EstablishSimulatedSession(ctx context.Context, superUserAuthorization AuthorizationInput, config ConfigurationName) (AuthenticatedSession, error)
+	RefreshSession(ctx context.Context, authorization AuthorizationInput) (AuthenticatedSession, error)
+	DestroySession(ctx context.Context, authorization AuthorizationInput) (bool, error)
+	DestroyAllSessions(ctx context.Context, superUserAuthorization AuthorizationInput) (AuthenticatedSessionsCount, error)
+	SaveURLsinText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
 }
 type QueryResolver interface {
 	AsymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
 	AsymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error)
-	Configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error)
-	Config(ctx context.Context, sessionID AuthenticatedSessionID, name ConfigurationName) (*Configuration, error)
-	UrlsInText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error)
+	Configs(ctx context.Context, authorization AuthorizationInput) ([]*Configuration, error)
+	Config(ctx context.Context, authorization AuthorizationInput, name ConfigurationName) (*Configuration, error)
+	UrlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
 }
 
 type shortMapper struct {
 	r ResolverRoot
 }
 
-func (s shortMapper) Mutation_establishSimulatedSession(ctx context.Context, config ConfigurationName) (AuthenticatedSession, error) {
-	return s.r.Mutation().EstablishSimulatedSession(ctx, config)
+func (s shortMapper) Mutation_establishSimulatedSession(ctx context.Context, superUserAuthorization AuthorizationInput, config ConfigurationName) (AuthenticatedSession, error) {
+	return s.r.Mutation().EstablishSimulatedSession(ctx, superUserAuthorization, config)
 }
 
-func (s shortMapper) Mutation_refreshSession(ctx context.Context, sessionID AuthenticatedSessionID) (AuthenticatedSession, error) {
-	return s.r.Mutation().RefreshSession(ctx, sessionID)
+func (s shortMapper) Mutation_refreshSession(ctx context.Context, authorization AuthorizationInput) (AuthenticatedSession, error) {
+	return s.r.Mutation().RefreshSession(ctx, authorization)
 }
 
-func (s shortMapper) Mutation_destroySession(ctx context.Context, sessionID AuthenticatedSessionID) (bool, error) {
-	return s.r.Mutation().DestroySession(ctx, sessionID)
+func (s shortMapper) Mutation_destroySession(ctx context.Context, authorization AuthorizationInput) (bool, error) {
+	return s.r.Mutation().DestroySession(ctx, authorization)
 }
 
-func (s shortMapper) Mutation_destroyAllSessions(ctx context.Context, superUserSessionID AuthenticatedSessionID) (AuthenticatedSessionsCount, error) {
-	return s.r.Mutation().DestroyAllSessions(ctx, superUserSessionID)
+func (s shortMapper) Mutation_destroyAllSessions(ctx context.Context, superUserAuthorization AuthorizationInput) (AuthenticatedSessionsCount, error) {
+	return s.r.Mutation().DestroyAllSessions(ctx, superUserAuthorization)
 }
 
-func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error) {
-	return s.r.Mutation().SaveURLsinText(ctx, sessionID, text)
+func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error) {
+	return s.r.Mutation().SaveURLsinText(ctx, authorization, text)
 }
 
 func (s shortMapper) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error) {
@@ -89,16 +89,16 @@ func (s shortMapper) Query_asymmetricCryptoPublicKeys(ctx context.Context, claim
 	return s.r.Query().AsymmetricCryptoPublicKeys(ctx, claimType)
 }
 
-func (s shortMapper) Query_configs(ctx context.Context, sessionID AuthenticatedSessionID) ([]*Configuration, error) {
-	return s.r.Query().Configs(ctx, sessionID)
+func (s shortMapper) Query_configs(ctx context.Context, authorization AuthorizationInput) ([]*Configuration, error) {
+	return s.r.Query().Configs(ctx, authorization)
 }
 
-func (s shortMapper) Query_config(ctx context.Context, sessionID AuthenticatedSessionID, name ConfigurationName) (*Configuration, error) {
-	return s.r.Query().Config(ctx, sessionID, name)
+func (s shortMapper) Query_config(ctx context.Context, authorization AuthorizationInput, name ConfigurationName) (*Configuration, error) {
+	return s.r.Query().Config(ctx, authorization, name)
 }
 
-func (s shortMapper) Query_urlsInText(ctx context.Context, sessionID AuthenticatedSessionID, text string) (*HarvestedResources, error) {
-	return s.r.Query().UrlsInText(ctx, sessionID, text)
+func (s shortMapper) Query_urlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error) {
+	return s.r.Query().UrlsInText(ctx, authorization, text)
 }
 
 type executableSchema struct {
@@ -696,10 +696,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel []query.Selection
 
 func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 ConfigurationName
+	var arg0 AuthorizationInput
+	if tmp, ok := field.Args["superUserAuthorization"]; ok {
+		var err error
+		arg0, err = UnmarshalAuthorizationInput(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["superUserAuthorization"] = arg0
+	var arg1 ConfigurationName
 	if tmp, ok := field.Args["config"]; ok {
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		err = (&arg1).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -707,14 +717,14 @@ func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Cont
 	} else {
 		var tmp interface{} = "DEFAULT"
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		err = (&arg1).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
 
-	args["config"] = arg0
+	args["config"] = arg1
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Mutation"
 	rctx.Args = args
@@ -722,7 +732,7 @@ func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Cont
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_establishSimulatedSession(ctx, args["config"].(ConfigurationName))
+		return ec.resolvers.Mutation_establishSimulatedSession(ctx, args["superUserAuthorization"].(AuthorizationInput), args["config"].(ConfigurationName))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -737,16 +747,16 @@ func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Cont
 
 func (ec *executionContext) _Mutation_refreshSession(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 AuthenticatedSessionID
-	if tmp, ok := field.Args["sessionID"]; ok {
+	var arg0 AuthorizationInput
+	if tmp, ok := field.Args["authorization"]; ok {
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		arg0, err = UnmarshalAuthorizationInput(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["sessionID"] = arg0
+	args["authorization"] = arg0
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Mutation"
 	rctx.Args = args
@@ -754,7 +764,7 @@ func (ec *executionContext) _Mutation_refreshSession(ctx context.Context, field 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_refreshSession(ctx, args["sessionID"].(AuthenticatedSessionID))
+		return ec.resolvers.Mutation_refreshSession(ctx, args["authorization"].(AuthorizationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -769,16 +779,16 @@ func (ec *executionContext) _Mutation_refreshSession(ctx context.Context, field 
 
 func (ec *executionContext) _Mutation_destroySession(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 AuthenticatedSessionID
-	if tmp, ok := field.Args["sessionID"]; ok {
+	var arg0 AuthorizationInput
+	if tmp, ok := field.Args["authorization"]; ok {
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		arg0, err = UnmarshalAuthorizationInput(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["sessionID"] = arg0
+	args["authorization"] = arg0
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Mutation"
 	rctx.Args = args
@@ -786,7 +796,7 @@ func (ec *executionContext) _Mutation_destroySession(ctx context.Context, field 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_destroySession(ctx, args["sessionID"].(AuthenticatedSessionID))
+		return ec.resolvers.Mutation_destroySession(ctx, args["authorization"].(AuthorizationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -801,16 +811,16 @@ func (ec *executionContext) _Mutation_destroySession(ctx context.Context, field 
 
 func (ec *executionContext) _Mutation_destroyAllSessions(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 AuthenticatedSessionID
-	if tmp, ok := field.Args["superUserSessionID"]; ok {
+	var arg0 AuthorizationInput
+	if tmp, ok := field.Args["superUserAuthorization"]; ok {
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		arg0, err = UnmarshalAuthorizationInput(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["superUserSessionID"] = arg0
+	args["superUserAuthorization"] = arg0
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Mutation"
 	rctx.Args = args
@@ -818,7 +828,7 @@ func (ec *executionContext) _Mutation_destroyAllSessions(ctx context.Context, fi
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_destroyAllSessions(ctx, args["superUserSessionID"].(AuthenticatedSessionID))
+		return ec.resolvers.Mutation_destroyAllSessions(ctx, args["superUserAuthorization"].(AuthorizationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -833,25 +843,16 @@ func (ec *executionContext) _Mutation_destroyAllSessions(ctx context.Context, fi
 
 func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 AuthenticatedSessionID
-	if tmp, ok := field.Args["sessionID"]; ok {
+	var arg0 AuthorizationInput
+	if tmp, ok := field.Args["authorization"]; ok {
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
-		if err != nil {
-			ec.Error(ctx, err)
-			return graphql.Null
-		}
-	} else {
-		var tmp interface{} = "JWT_IN_HTTP_HEADER"
-		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		arg0, err = UnmarshalAuthorizationInput(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-
-	args["sessionID"] = arg0
+	args["authorization"] = arg0
 	var arg1 string
 	if tmp, ok := field.Args["text"]; ok {
 		var err error
@@ -869,7 +870,7 @@ func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_saveURLsinText(ctx, args["sessionID"].(AuthenticatedSessionID), args["text"].(string))
+		return ec.resolvers.Mutation_saveURLsinText(ctx, args["authorization"].(AuthorizationInput), args["text"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1352,25 +1353,16 @@ func (ec *executionContext) _Query_asymmetricCryptoPublicKeys(ctx context.Contex
 
 func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 AuthenticatedSessionID
-	if tmp, ok := field.Args["sessionID"]; ok {
+	var arg0 AuthorizationInput
+	if tmp, ok := field.Args["authorization"]; ok {
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
-		if err != nil {
-			ec.Error(ctx, err)
-			return graphql.Null
-		}
-	} else {
-		var tmp interface{} = "JWT_IN_HTTP_HEADER"
-		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		arg0, err = UnmarshalAuthorizationInput(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-
-	args["sessionID"] = arg0
+	args["authorization"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "Query",
 		Args:   args,
@@ -1386,7 +1378,7 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_configs(ctx, args["sessionID"].(AuthenticatedSessionID))
+			return ec.resolvers.Query_configs(ctx, args["authorization"].(AuthorizationInput))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1414,25 +1406,16 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 
 func (ec *executionContext) _Query_config(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 AuthenticatedSessionID
-	if tmp, ok := field.Args["sessionID"]; ok {
+	var arg0 AuthorizationInput
+	if tmp, ok := field.Args["authorization"]; ok {
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
-		if err != nil {
-			ec.Error(ctx, err)
-			return graphql.Null
-		}
-	} else {
-		var tmp interface{} = "JWT_IN_HTTP_HEADER"
-		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		arg0, err = UnmarshalAuthorizationInput(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-
-	args["sessionID"] = arg0
+	args["authorization"] = arg0
 	var arg1 ConfigurationName
 	if tmp, ok := field.Args["name"]; ok {
 		var err error
@@ -1458,7 +1441,7 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_config(ctx, args["sessionID"].(AuthenticatedSessionID), args["name"].(ConfigurationName))
+			return ec.resolvers.Query_config(ctx, args["authorization"].(AuthorizationInput), args["name"].(ConfigurationName))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1477,25 +1460,16 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 
 func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
-	var arg0 AuthenticatedSessionID
-	if tmp, ok := field.Args["sessionID"]; ok {
+	var arg0 AuthorizationInput
+	if tmp, ok := field.Args["authorization"]; ok {
 		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
-		if err != nil {
-			ec.Error(ctx, err)
-			return graphql.Null
-		}
-	} else {
-		var tmp interface{} = "JWT_IN_HTTP_HEADER"
-		var err error
-		err = (&arg0).UnmarshalGQL(tmp)
+		arg0, err = UnmarshalAuthorizationInput(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-
-	args["sessionID"] = arg0
+	args["authorization"] = arg0
 	var arg1 string
 	if tmp, ok := field.Args["text"]; ok {
 		var err error
@@ -1521,7 +1495,7 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_urlsInText(ctx, args["sessionID"].(AuthenticatedSessionID), args["text"].(string))
+			return ec.resolvers.Query_urlsInText(ctx, args["authorization"].(AuthorizationInput), args["text"].(string))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -2643,6 +2617,41 @@ func (ec *executionContext) _Party(ctx context.Context, sel []query.Selection, o
 	}
 }
 
+func UnmarshalAuthorizationInput(v interface{}) (AuthorizationInput, error) {
+	var it AuthorizationInput
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "claimType":
+			var err error
+			err = (&it.ClaimType).UnmarshalGQL(v)
+			if err != nil {
+				return it, err
+			}
+		case "claimMedium":
+			var err error
+			err = (&it.ClaimMedium).UnmarshalGQL(v)
+			if err != nil {
+				return it, err
+			}
+		case "sessionID":
+			var err error
+			var ptr1 AuthenticatedSessionID
+			if v != nil {
+				err = (&ptr1).UnmarshalGQL(v)
+				it.SessionID = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) introspectSchema() *introspection.Schema {
 	return introspection.WrapSchema(parsedSchema)
 }
@@ -2838,19 +2847,25 @@ type HarvestedResources {
   invalid : [UnharvestedResource]
 }
 
+input AuthorizationInput {
+  claimType : AuthorizationClaimType!
+  claimMedium : AuthorizationClaimMedium!
+  sessionID: AuthenticatedSessionID
+}
+
 type Query {
   asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
   asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
-  configs(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER") : [Configuration]
-  config(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", name : ConfigurationName!): Configuration
-  urlsInText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text: String!): HarvestedResources
+  configs(authorization : AuthorizationInput!) : [Configuration]
+  config(authorization : AuthorizationInput!, name : ConfigurationName!): Configuration
+  urlsInText(authorization : AuthorizationInput!, text: String!): HarvestedResources
 }
 
 type Mutation {
-  establishSimulatedSession(config : ConfigurationName = "DEFAULT") : AuthenticatedSession
-  refreshSession(sessionID : AuthenticatedSessionID!) : AuthenticatedSession
-  destroySession(sessionID : AuthenticatedSessionID!) : Boolean!
-  destroyAllSessions(superUserSessionID : AuthenticatedSessionID!) : AuthenticatedSessionsCount!
-  saveURLsinText(sessionID : AuthenticatedSessionID! = "JWT_IN_HTTP_HEADER", text : String!) : HarvestedResources
+  establishSimulatedSession(superUserAuthorization : AuthorizationInput!, config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  refreshSession(authorization : AuthorizationInput!) : AuthenticatedSession
+  destroySession(authorization : AuthorizationInput!) : Boolean!
+  destroyAllSessions(superUserAuthorization : AuthorizationInput!) : AuthenticatedSessionsCount!
+  saveURLsinText(authorization : AuthorizationInput!, text : String!) : HarvestedResources
 }
 `)

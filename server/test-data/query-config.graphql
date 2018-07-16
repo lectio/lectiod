@@ -1,5 +1,6 @@
 query {
-  config(sessionID: "SIMULATED", name: "DEFAULT") {
+  config(authorization: { claimType : SESSION_ID, claimMedium : PARAM_VALUE, sessionID : "SIMULATED"},
+    name : "DEFAULT") {
     storage { type, filesys { basePath } }
     harvest { ignoreURLsRegExprs, removeParamsFromURLsRegEx, followHTMLRedirects}
     errors

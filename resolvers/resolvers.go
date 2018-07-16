@@ -42,13 +42,13 @@ func (sr *SchemaResolvers) DefaultConfiguration() *Configuration {
 	return sr.defaultConfig
 }
 
-func (sr *SchemaResolvers) ValidateSession(ctx context.Context, sessionID schema.AuthenticatedSessionID) (schema.AuthenticatedSession, error) {
+func (sr *SchemaResolvers) ValidateSession(ctx context.Context, authorization schema.AuthorizationInput) (schema.AuthenticatedSession, error) {
 	span, ctx := sr.observatory.StartTraceFromContext(ctx, "ValidateSession")
 	defer span.Finish()
 
-	session := sr.sessions[sessionID]
+	session := sr.sessions[*authorization.SessionID]
 	if session == nil {
-		error := fmt.Errorf("Session '%v' is invalid, %d available", sessionID, len(sr.sessions))
+		error := fmt.Errorf("Session '%v' is invalid, %d available", *authorization.SessionID, len(sr.sessions))
 		opentrext.Error.Set(span, true)
 		span.LogFields(log.Error(error))
 		return nil, error
@@ -66,11 +66,11 @@ func (sr *SchemaResolvers) Query_asymmetricCryptoPublicKeys(ctx context.Context,
 	return nil, errors.New("Not implemented yet")
 }
 
-func (sr *SchemaResolvers) Query_configs(ctx context.Context, sessionID schema.AuthenticatedSessionID) ([]*schema.Configuration, error) {
+func (sr *SchemaResolvers) Query_configs(ctx context.Context, authorization schema.AuthorizationInput) ([]*schema.Configuration, error) {
 	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_configs")
 	defer span.Finish()
 
-	_, sessErr := sr.ValidateSession(ctx, sessionID)
+	_, sessErr := sr.ValidateSession(ctx, authorization)
 	if sessErr != nil {
 		return nil, sessErr
 	}
@@ -83,11 +83,11 @@ func (sr *SchemaResolvers) Query_configs(ctx context.Context, sessionID schema.A
 }
 
 // Query_config implements GraphQL query endpoint
-func (sr *SchemaResolvers) Query_config(ctx context.Context, sessionID schema.AuthenticatedSessionID, name schema.ConfigurationName) (*schema.Configuration, error) {
+func (sr *SchemaResolvers) Query_config(ctx context.Context, authorization schema.AuthorizationInput, name schema.ConfigurationName) (*schema.Configuration, error) {
 	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_config")
 	defer span.Finish()
 
-	_, sessErr := sr.ValidateSession(ctx, sessionID)
+	_, sessErr := sr.ValidateSession(ctx, authorization)
 	if sessErr != nil {
 		return nil, sessErr
 	}
@@ -99,11 +99,11 @@ func (sr *SchemaResolvers) Query_config(ctx context.Context, sessionID schema.Au
 	return nil, nil
 }
 
-func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, sessionID schema.AuthenticatedSessionID, text string) (*schema.HarvestedResources, error) {
+func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization schema.AuthorizationInput, text string) (*schema.HarvestedResources, error) {
 	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_urlsInText")
 	defer span.Finish()
 
-	authSess, sessErr := sr.ValidateSession(ctx, sessionID)
+	authSess, sessErr := sr.ValidateSession(ctx, authorization)
 	if sessErr != nil {
 		return nil, sessErr
 	}
@@ -170,22 +170,22 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, sessionID schem
 	return result, nil
 }
 
-func (sr *SchemaResolvers) Mutation_establishSimulatedSession(ctx context.Context, config schema.ConfigurationName) (schema.AuthenticatedSession, error) {
+func (sr *SchemaResolvers) Mutation_establishSimulatedSession(ctx context.Context, superUserAuthorization schema.AuthorizationInput, config schema.ConfigurationName) (schema.AuthenticatedSession, error) {
 	return sr.simulatedSession, nil
 }
 
-func (sr *SchemaResolvers) Mutation_destroySession(ctx context.Context, sessionID schema.AuthenticatedSessionID) (bool, error) {
+func (sr *SchemaResolvers) Mutation_destroySession(ctx context.Context, authorization schema.AuthorizationInput) (bool, error) {
 	return false, errors.New("Mutation destroySession not implemented yet")
 }
 
-func (sr *SchemaResolvers) Mutation_destroyAllSessions(ctx context.Context, superUserSessionID schema.AuthenticatedSessionID) (schema.AuthenticatedSessionsCount, error) {
+func (sr *SchemaResolvers) Mutation_destroyAllSessions(ctx context.Context, superUserAuthorization schema.AuthorizationInput) (schema.AuthenticatedSessionsCount, error) {
 	return schema.AuthenticatedSessionsCount(0), errors.New("Superuser-only mutation destroyAllSessions not implemented yet")
 }
 
-func (sr *SchemaResolvers) Mutation_refreshSession(ctx context.Context, sessionID schema.AuthenticatedSessionID) (schema.AuthenticatedSession, error) {
+func (sr *SchemaResolvers) Mutation_refreshSession(ctx context.Context, authorization schema.AuthorizationInput) (schema.AuthenticatedSession, error) {
 	return nil, errors.New("Mutation refreshSession (for JWT refreshes) not implemented yet")
 }
 
-func (sr *SchemaResolvers) Mutation_saveURLsinText(ctx context.Context, sessionID schema.AuthenticatedSessionID, text string) (*schema.HarvestedResources, error) {
-	return sr.Query_urlsInText(ctx, sessionID, text)
+func (sr *SchemaResolvers) Mutation_saveURLsinText(ctx context.Context, authorization schema.AuthorizationInput, text string) (*schema.HarvestedResources, error) {
+	return sr.Query_urlsInText(ctx, authorization, text)
 }

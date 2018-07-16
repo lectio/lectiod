@@ -72,6 +72,11 @@ type Person struct {
 	Users     []*UserIdentity    `json:"users"`
 	Services  []*ServiceIdentity `json:"services"`
 }
+type PrivilegedAuthorizationInput struct {
+	ClaimType   AuthorizationClaimType   `json:"claimType"`
+	ClaimMedium AuthorizationClaimMedium `json:"claimMedium"`
+	SessionID   *AuthenticatedSessionID  `json:"sessionID"`
+}
 type ServiceIdentity struct {
 	ID        string             `json:"id"`
 	Type      AuthenticationType `json:"type"`

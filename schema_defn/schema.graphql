@@ -187,18 +187,24 @@ input AuthorizationInput {
   sessionID: AuthenticatedSessionID
 }
 
+input PrivilegedAuthorizationInput {
+  claimType : AuthorizationClaimType!
+  claimMedium : AuthorizationClaimMedium!
+  sessionID: AuthenticatedSessionID
+}
+
 type Query {
   asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
   asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
-  configs(authorization : AuthorizationInput!) : [Configuration]
-  config(authorization : AuthorizationInput!, name : ConfigurationName!): Configuration
+  configs(authorization : PrivilegedAuthorizationInput!) : [Configuration]
+  config(authorization : PrivilegedAuthorizationInput!, name : ConfigurationName!): Configuration
   urlsInText(authorization : AuthorizationInput!, text: String!): HarvestedResources
 }
 
 type Mutation {
-  establishSimulatedSession(superUserAuthorization : AuthorizationInput!, config : ConfigurationName = "DEFAULT") : AuthenticatedSession
-  refreshSession(authorization : AuthorizationInput!) : AuthenticatedSession
-  destroySession(authorization : AuthorizationInput!) : Boolean!
-  destroyAllSessions(superUserAuthorization : AuthorizationInput!) : AuthenticatedSessionsCount!
+  establishSimulatedSession(authorization : PrivilegedAuthorizationInput!, config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  refreshSession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : AuthenticatedSession
+  destroySession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : Boolean!
+  destroyAllSessions(authorization : PrivilegedAuthorizationInput!) : AuthenticatedSessionsCount!
   saveURLsinText(authorization : AuthorizationInput!, text : String!) : HarvestedResources
 }

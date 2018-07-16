@@ -7,8 +7,12 @@ import (
 
 	schema "github.com/lectio/lectiod/schema_defn"
 	"github.com/lectio/lectiod/storage"
+	"github.com/spf13/viper"
 
 	"github.com/lectio/harvester"
+	opentracing "github.com/opentracing/opentracing-go"
+	opentrext "github.com/opentracing/opentracing-go/ext"
+	"github.com/opentracing/opentracing-go/log"
 	// github.com/google/go-jsonnet
 	// github.com/rcrowley/go-metrics
 )
@@ -91,24 +95,42 @@ type Configuration struct {
 	removeParamsFromURLsRegEx cleanURLsRegExList
 }
 
-func NewConfiguration(sr *SchemaResolvers, name schema.ConfigurationName, store *storage.FileStorage) *Configuration {
-	result := new(Configuration)
-	result.store = store
-
-	result.settings = new(schema.Configuration)
-	result.settings.Name = name
-	result.settings.Storage.Type = schema.StorageTypeFileSystem
-	result.settings.Storage.Filesys = &store.Config
+func createDefaultSettings(name schema.ConfigurationName) *schema.Configuration {
+	result := new(schema.Configuration)
+	result.Name = name
 
 	twitterStatusRegExpr := schema.RegularExpression(`^https://twitter.com/(.*?)/status/(.*)$`)
 	twitterCommonErrorURLRegExpr := schema.RegularExpression(`https://t.co`)
 	utmRegExpr := schema.RegularExpression(`^utm_`)
 
-	result.settings.Harvest.IgnoreURLsRegExprs = []*schema.RegularExpression{&twitterStatusRegExpr, &twitterCommonErrorURLRegExpr}
-	result.settings.Harvest.RemoveParamsFromURLsRegEx = []*schema.RegularExpression{&utmRegExpr}
-	result.settings.Harvest.FollowHTMLRedirects = true
-	result.ConfigureContentHarvester(sr)
+	result.Harvest.IgnoreURLsRegExprs = []*schema.RegularExpression{&twitterStatusRegExpr, &twitterCommonErrorURLRegExpr}
+	result.Harvest.RemoveParamsFromURLsRegEx = []*schema.RegularExpression{&utmRegExpr}
+	result.Harvest.FollowHTMLRedirects = true
 
+	result.Storage.Type = schema.StorageTypeFileSystem
+	result.Storage.Filesys = new(schema.FileStorageConfiguration)
+	result.Storage.Filesys.BasePath = "./tmp/diskv_data"
+
+	return result
+}
+
+func NewViperConfiguration(sr *SchemaResolvers, configName schema.ConfigurationName, path string, fileName string, parent opentracing.Span) *Configuration {
+	result := new(Configuration)
+	result.settings = createDefaultSettings(configName)
+
+	v := viper.New()
+	v.AddConfigPath(path)
+	v.SetConfigName(fileName)
+	//err := v.ReadInConfig()
+
+	result.ConfigureContentHarvester(sr, parent)
+	return result
+}
+
+func NewConfiguration(sr *SchemaResolvers, name schema.ConfigurationName, parent opentracing.Span) *Configuration {
+	result := new(Configuration)
+	result.settings = createDefaultSettings(name)
+	result.ConfigureContentHarvester(sr, parent)
 	return result
 }
 
@@ -117,7 +139,17 @@ func (c *Configuration) Settings() *schema.Configuration {
 }
 
 // ConfigureContentHarvester uses the config parameters in Configuration().Harvest to setup the content harvester
-func (c *Configuration) ConfigureContentHarvester(sr *SchemaResolvers) {
+func (c *Configuration) ConfigureContentHarvester(sr *SchemaResolvers, parent opentracing.Span) {
+	span := sr.observatory.StartChildTrace("Configuration.ConfigureContentHarvester", parent)
+	defer span.Finish()
+
+	if c.settings.Storage.Type == schema.StorageTypeFileSystem {
+		c.store = storage.NewFileStorage(*c.settings.Storage.Filesys)
+	} else {
+		error := fmt.Errorf("Unkown storage type '%s'", c.settings.Storage.Type)
+		opentrext.Error.Set(span, true)
+		span.LogFields(log.Error(error))
+	}
 	c.ignoreURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.IgnoreURLsRegExprs)
 	c.removeParamsFromURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.RemoveParamsFromURLsRegEx)
 	c.contentHarvester = harvester.MakeContentHarvester(sr.observatory, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)

@@ -6,16 +6,16 @@ import (
 	"fmt"
 
 	schema "github.com/lectio/lectiod/schema_defn"
-	"github.com/lectio/lectiod/storage"
 	observe "github.com/shah/observe-go"
 
+	opentracing "github.com/opentracing/opentracing-go"
 	opentrext "github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
 	// github.com/google/go-jsonnet
 	// github.com/rcrowley/go-metrics
 )
 
-// Service is the overall GraphQL service handler
+// SchemaResolvers is the overall GraphQL service handler
 type SchemaResolvers struct {
 	defaultConfig    *Configuration
 	configs          ConfigurationsMap
@@ -24,11 +24,14 @@ type SchemaResolvers struct {
 	simulatedSession schema.AuthenticatedSession
 }
 
-// NewService creates the GraphQL driver
-func NewSchemaResolvers(observatory observe.Observatory, store *storage.FileStorage) *SchemaResolvers {
+// NewSchemaResolvers creates the GraphQL driver
+func NewSchemaResolvers(observatory observe.Observatory, parent opentracing.Span) *SchemaResolvers {
+	span := observatory.StartChildTrace("resolvers.NewSchemaResolvers", parent)
+	defer span.Finish()
+
 	result := new(SchemaResolvers)
 	result.observatory = observatory
-	result.defaultConfig = NewConfiguration(result, DefaultConfigurationName, store)
+	result.defaultConfig = NewConfiguration(result, DefaultConfigurationName, span)
 	result.configs = make(ConfigurationsMap)
 	result.configs[DefaultConfigurationName] = result.defaultConfig
 

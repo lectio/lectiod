@@ -7,7 +7,6 @@ import (
 
 	"github.com/lectio/lectiod/resolvers"
 	schema "github.com/lectio/lectiod/schema_defn"
-	"github.com/lectio/lectiod/storage"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	otlog "github.com/opentracing/opentracing-go/log"
@@ -65,9 +64,11 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `{"alive": true}`)
 }
 
-func createExecutableSchemaHandler(o observe.Observatory) http.HandlerFunc {
-	storage := storage.NewFileStorage("./tmp/diskv_data")
-	resolvers := resolvers.NewSchemaResolvers(o, storage)
+func createExecutableSchemaHandler(o observe.Observatory, parent opentracing.Span) http.HandlerFunc {
+	span := o.StartChildTrace("graphql.createExecutableSchemaHandler", parent)
+	defer span.Finish()
+
+	resolvers := resolvers.NewSchemaResolvers(o, span)
 
 	// TODO Add error presenter and panic handlers: https://gqlgen.com/reference/errors/
 	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
@@ -78,13 +79,13 @@ func createExecutableSchemaHandler(o observe.Observatory) http.HandlerFunc {
 }
 
 // CreateGraphQLOverHTTPServer prepares an HTTP server to run GraphQL queries
-func CreateGraphQLOverHTTPServer(o observe.Observatory) *http.Server {
+func CreateGraphQLOverHTTPServer(o observe.Observatory, parent opentracing.Span) *http.Server {
 
 	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
 
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/", handler.Playground("Lectio", "/graphql"))
-	serveMux.Handle("/graphql", createExecutableSchemaHandler(o))
+	serveMux.Handle("/graphql", createExecutableSchemaHandler(o, parent))
 	serveMux.HandleFunc("/health-check", healthCheckHandler)
 
 	server := http.Server{

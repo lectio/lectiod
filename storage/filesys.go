@@ -13,16 +13,16 @@ type FileStorage struct {
 }
 
 // NewFileStorage that can persist content
-func NewFileStorage(basePath string) *FileStorage {
+func NewFileStorage(config schema.FileStorageConfiguration) *FileStorage {
 	result := new(FileStorage)
-	result.Config.BasePath = basePath
+	result.Config = config
 
 	// Simplest transform function: put all the data files into the base dir.
 	flatTransform := func(s string) []string { return []string{} }
 
 	// Initialize a new diskv store, rooted at "my-data-dir", with a 1MB cache.
 	result.diskv = diskv.New(diskv.Options{
-		BasePath:     basePath,
+		BasePath:     config.BasePath,
 		Transform:    flatTransform,
 		CacheSizeMax: 1024 * 1024,
 	})

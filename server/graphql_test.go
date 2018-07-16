@@ -73,7 +73,7 @@ func (suite *GraphQLOverHTTPServerSuite) testGraphQLQuery(queryName string) {
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(createExecutableSchemaHandler(suite.observatory))
+	handler := http.HandlerFunc(createExecutableSchemaHandler(suite.observatory, suite.span))
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder with context info.

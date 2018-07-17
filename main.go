@@ -20,7 +20,10 @@ func main() {
 	defer span.Finish()
 
 	graphQLHTTPServer := server.CreateGraphQLOverHTTPServer(observatory, configPathProvider, span)
+	//TODO: graphQLHTTPServer resolvers have configurations that need to be closed so call resolvers.Close()
 
 	fmt.Printf("Listening on %s, serving configs from %v, try http://localhost%s/playground", graphQLHTTPServer.Addr, configPathProvider(""), graphQLHTTPServer.Addr)
 	log.Fatal(graphQLHTTPServer.ListenAndServe())
+
+	graphQLHTTPServer.Close()
 }

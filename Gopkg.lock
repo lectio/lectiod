@@ -38,10 +38,22 @@
   version = "v1.4.7"
 
 [[projects]]
+  name = "github.com/gogo/protobuf"
+  packages = ["proto"]
+  revision = "7d68e886eac4f7e34d0d82241a6273d6c304c5cf"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/google/btree"
   packages = ["."]
   revision = "e89373fe6b4a7413d7acd6da1725b83ef713e6e4"
+
+[[projects]]
+  name = "github.com/google/uuid"
+  packages = ["."]
+  revision = "064e2069ce9c359c118179501254f67d7d37ba24"
+  version = "0.2"
 
 [[projects]]
   name = "github.com/gorilla/websocket"
@@ -67,6 +79,38 @@
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
 
 [[projects]]
+  name = "github.com/ipfs/go-datastore"
+  packages = [
+    ".",
+    "query"
+  ]
+  revision = "e9b957d683804610bb830a00aed753633c4a5d36"
+  version = "v2.4.1"
+
+[[projects]]
+  name = "github.com/ipfs/go-ds-flatfs"
+  packages = ["."]
+  revision = "80a3d2b8f0f57d5e2bfda4a723ef32f0dd4cce19"
+  version = "v1.2.6"
+
+[[projects]]
+  name = "github.com/ipfs/go-log"
+  packages = [
+    ".",
+    "tracer",
+    "tracer/wire",
+    "writer"
+  ]
+  revision = "5dc2060baaf8db344f31dafd852340b93811d03f"
+  version = "v1.5.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/jbenet/goprocess"
+  packages = ["."]
+  revision = "b497e2f366b8624394fb2e89c10ab607bebdde0b"
+
+[[projects]]
   branch = "master"
   name = "github.com/julianshen/go-readability"
   packages = ["."]
@@ -89,6 +133,18 @@
   packages = ["."]
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
   version = "v1.8.0"
+
+[[projects]]
+  name = "github.com/mattn/go-colorable"
+  packages = ["."]
+  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
+  version = "v0.0.9"
+
+[[projects]]
+  name = "github.com/mattn/go-isatty"
+  packages = ["."]
+  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
+  version = "v0.0.3"
 
 [[projects]]
   branch = "master"
@@ -135,6 +191,12 @@
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -231,6 +293,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/whyrusleeping/go-logging"
+  packages = ["."]
+  revision = "0457bb6b88fc1973573aaf6b5145d8d3ae972390"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -283,6 +351,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c500421c13349ec477b2d7ab09806bad6c3a5acf5bcffe458ea5a4db4e8bcc43"
+  inputs-digest = "2de51425791d9ac1e7a364aaf6a48dbc47a993235d3a460362bb9d0ea733c414"
   solver-name = "gps-cdcl"
   solver-version = 1

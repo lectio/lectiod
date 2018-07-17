@@ -61,3 +61,7 @@
     # don't remove unused packages because gqlgen/main.go is needed for generator
     name = "github.com/vektah/gqlgen"
     unused-packages = false
+
+[[constraint]]
+  name = "github.com/google/uuid"
+  version = "0.2.0"

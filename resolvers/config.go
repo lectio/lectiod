@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-ds-flatfs"
 	schema "github.com/lectio/lectiod/schema_defn"
-	"github.com/lectio/lectiod/storage"
 	"github.com/spf13/viper"
 
 	"github.com/lectio/harvester"
@@ -90,7 +91,7 @@ func (l cleanURLsRegExList) RemoveQueryParamFromResource(paramName string) (bool
 
 type Configuration struct {
 	settings                  *schema.Configuration
-	store                     *storage.FileStorage
+	store                     datastore.Datastore
 	contentHarvester          *harvester.ContentHarvester
 	ignoreURLsRegEx           ignoreURLsRegExList
 	removeParamsFromURLsRegEx cleanURLsRegExList
@@ -155,6 +156,10 @@ func NewDefaultConfiguration(sr *SchemaResolvers, name schema.ConfigurationName,
 	return result
 }
 
+func (c *Configuration) Close() {
+
+}
+
 func (c *Configuration) Settings() *schema.Configuration {
 	return c.settings
 }
@@ -165,7 +170,13 @@ func (c *Configuration) ConfigureContentHarvester(sr *SchemaResolvers, parent op
 	defer span.Finish()
 
 	if c.settings.Storage.Type == schema.StorageTypeFileSystem {
-		c.store = storage.NewFileStorage(*c.settings.Storage.Filesys)
+		store, err := flatfs.CreateOrOpen(c.settings.Storage.Filesys.BasePath, flatfs.IPFS_DEF_SHARD, true)
+		if err == nil {
+			c.store = store
+		} else {
+			opentrext.Error.Set(span, true)
+			span.LogFields(log.Error(err))
+		}
 	} else {
 		error := fmt.Errorf("Unkown storage type '%s'", c.settings.Storage.Type)
 		opentrext.Error.Set(span, true)

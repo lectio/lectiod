@@ -64,14 +64,13 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `{"alive": true}`)
 }
 
-func createExecutableSchemaHandler(o observe.Observatory, parent opentracing.Span) http.HandlerFunc {
+func createExecutableSchemaHandler(o observe.Observatory, provider resolvers.ConfigPathProvider, parent opentracing.Span) http.HandlerFunc {
 	span := o.StartChildTrace("graphql.createExecutableSchemaHandler", parent)
 	defer span.Finish()
 
-	resolvers := resolvers.NewSchemaResolvers(o, span)
+	resolvers := resolvers.NewSchemaResolvers(o, provider, span)
 
 	// TODO Add error presenter and panic handlers: https://gqlgen.com/reference/errors/
-	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
 
 	return handler.GraphQL(schema.MakeExecutableSchema(resolvers),
 		handler.ResolverMiddleware(createGraphQLObservableResolverMiddleware(o)),
@@ -79,13 +78,15 @@ func createExecutableSchemaHandler(o observe.Observatory, parent opentracing.Spa
 }
 
 // CreateGraphQLOverHTTPServer prepares an HTTP server to run GraphQL queries
-func CreateGraphQLOverHTTPServer(o observe.Observatory, parent opentracing.Span) *http.Server {
+func CreateGraphQLOverHTTPServer(o observe.Observatory, provider resolvers.ConfigPathProvider, parent opentracing.Span) *http.Server {
+	span := o.StartChildTrace("graphql.CreateGraphQLOverHTTPServer", parent)
+	defer span.Finish()
 
 	// TODO Add Voyager documentation handler: https://github.com/APIs-guru/graphql-voyager
 
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/", handler.Playground("Lectio", "/graphql"))
-	serveMux.Handle("/graphql", createExecutableSchemaHandler(o, parent))
+	serveMux.Handle("/graphql", createExecutableSchemaHandler(o, provider, span))
 	serveMux.HandleFunc("/health-check", healthCheckHandler)
 
 	server := http.Server{

@@ -8,12 +8,19 @@ import (
 	observe "github.com/shah/observe-go"
 )
 
+func configPathProvider(configName string) []string {
+	return []string{"conf"}
+}
+
 func main() {
 	observatory := observe.MakeObservatoryFromEnv()
 	defer observatory.Close()
 
-	graphQLHTTPServer := server.CreateGraphQLOverHTTPServer(observatory)
+	span := observatory.StartTrace("main()")
+	defer span.Finish()
 
-	fmt.Printf("Listening on %s, try http://localhost%s/playground", graphQLHTTPServer.Addr, graphQLHTTPServer.Addr)
+	graphQLHTTPServer := server.CreateGraphQLOverHTTPServer(observatory, configPathProvider, span)
+
+	fmt.Printf("Listening on %s, serving configs from %v, try http://localhost%s/playground", graphQLHTTPServer.Addr, configPathProvider(""), graphQLHTTPServer.Addr)
 	log.Fatal(graphQLHTTPServer.ListenAndServe())
 }

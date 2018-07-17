@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 
 	schema "github.com/lectio/lectiod/schema_defn"
 	"github.com/lectio/lectiod/storage"
@@ -114,20 +115,40 @@ func createDefaultSettings(name schema.ConfigurationName) *schema.Configuration 
 	return result
 }
 
-func NewViperConfiguration(sr *SchemaResolvers, configName schema.ConfigurationName, path string, fileName string, parent opentracing.Span) *Configuration {
-	result := new(Configuration)
-	result.settings = createDefaultSettings(configName)
+func NewViperConfiguration(sr *SchemaResolvers, provider ConfigPathProvider, configName schema.ConfigurationName, parent opentracing.Span) *Configuration {
+	span := sr.observatory.StartChildTrace("resolvers.NewViperConfiguration", parent)
+	defer span.Finish()
 
+	result := new(Configuration)
 	v := viper.New()
-	v.AddConfigPath(path)
-	v.SetConfigName(fileName)
-	//err := v.ReadInConfig()
+
+	v.SetEnvPrefix("LECTIOD_CONF")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
+
+	v.SetConfigName(string(configName))
+	for _, path := range provider(string(configName)) {
+		v.AddConfigPath(path)
+	}
+	err := v.ReadInConfig()
+
+	if err != nil {
+		opentrext.Error.Set(span, true)
+		span.LogFields(log.Error(err))
+	} else {
+		span.LogFields(log.String("Read configuration from file %s", v.ConfigFileUsed()))
+		err = v.Unmarshal(&result.settings)
+		if err != nil {
+			opentrext.Error.Set(span, true)
+			span.LogFields(log.Error(err))
+		}
+	}
 
 	result.ConfigureContentHarvester(sr, parent)
 	return result
 }
 
-func NewConfiguration(sr *SchemaResolvers, name schema.ConfigurationName, parent opentracing.Span) *Configuration {
+func NewDefaultConfiguration(sr *SchemaResolvers, name schema.ConfigurationName, parent opentracing.Span) *Configuration {
 	result := new(Configuration)
 	result.settings = createDefaultSettings(name)
 	result.ConfigureContentHarvester(sr, parent)
@@ -140,7 +161,7 @@ func (c *Configuration) Settings() *schema.Configuration {
 
 // ConfigureContentHarvester uses the config parameters in Configuration().Harvest to setup the content harvester
 func (c *Configuration) ConfigureContentHarvester(sr *SchemaResolvers, parent opentracing.Span) {
-	span := sr.observatory.StartChildTrace("Configuration.ConfigureContentHarvester", parent)
+	span := sr.observatory.StartChildTrace("resolvers.ConfigureContentHarvester", parent)
 	defer span.Finish()
 
 	if c.settings.Storage.Type == schema.StorageTypeFileSystem {

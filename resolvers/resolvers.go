@@ -17,6 +17,7 @@ import (
 
 // SchemaResolvers is the overall GraphQL service handler
 type SchemaResolvers struct {
+	configPath       ConfigPathProvider
 	defaultConfig    *Configuration
 	configs          ConfigurationsMap
 	sessions         AuthenticatedSessionsMap
@@ -24,14 +25,17 @@ type SchemaResolvers struct {
 	simulatedSession schema.AuthenticatedSession
 }
 
+type ConfigPathProvider func(configName string) []string
+
 // NewSchemaResolvers creates the GraphQL driver
-func NewSchemaResolvers(observatory observe.Observatory, parent opentracing.Span) *SchemaResolvers {
+func NewSchemaResolvers(observatory observe.Observatory, configPath ConfigPathProvider, parent opentracing.Span) *SchemaResolvers {
 	span := observatory.StartChildTrace("resolvers.NewSchemaResolvers", parent)
 	defer span.Finish()
 
 	result := new(SchemaResolvers)
 	result.observatory = observatory
-	result.defaultConfig = NewConfiguration(result, DefaultConfigurationName, span)
+	result.configPath = configPath
+	result.defaultConfig = NewViperConfiguration(result, configPath, DefaultConfigurationName, span)
 	result.configs = make(ConfigurationsMap)
 	result.configs[DefaultConfigurationName] = result.defaultConfig
 

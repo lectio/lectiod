@@ -30,20 +30,34 @@
   name = "github.com/lectio/harvester"
 
 [[constraint]]
+  name = "github.com/opentracing/opentracing-go"
+  version = "1.0.2"
+
+[[constraint]]
   name = "github.com/peterbourgon/diskv"
   version = "2.0.1"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/vektah/gqlgen"
-
-[prune]
-  go-tests = true
-
-[[constraint]]
-  name = "gopkg.in/yaml.v2"
-  version = "2.2.1"
+  name = "github.com/shah/observe-go"
 
 [[constraint]]
   name = "github.com/spf13/viper"
   version = "1.0.2"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.2"
+
+[[constraint]]
+  name = "github.com/vektah/gqlgen"
+  version = "0.3.0"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+  [[prune.project]]
+    # don't remove unused packages because gqlgen/main.go is needed for generator
+    name = "github.com/vektah/gqlgen"
+    unused-packages = false

@@ -215,7 +215,6 @@
   version = "v1.5.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/vektah/gqlgen"
   packages = [
     "graphql",
@@ -227,7 +226,8 @@
     "neelance/schema",
     "neelance/validation"
   ]
-  revision = "55179a61aeefeb044f023d7fa0342518b90af76e"
+  revision = "381b34691fd93829e50ba8821412dc3467ec4821"
+  version = "0.3.0"
 
 [[projects]]
   branch = "master"
@@ -283,6 +283,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bb96cd91dac7f675bdfd75481c8b6518c57816e9f59782d3e89b169ec141e2c4"
+  inputs-digest = "c500421c13349ec477b2d7ab09806bad6c3a5acf5bcffe458ea5a4db4e8bcc43"
   solver-name = "gps-cdcl"
   solver-version = 1

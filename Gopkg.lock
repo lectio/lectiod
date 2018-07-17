@@ -44,12 +44,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/google/btree"
-  packages = ["."]
-  revision = "e89373fe6b4a7413d7acd6da1725b83ef713e6e4"
-
-[[projects]]
   name = "github.com/google/uuid"
   packages = ["."]
   revision = "064e2069ce9c359c118179501254f67d7d37ba24"
@@ -167,18 +161,6 @@
   packages = ["."]
   revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
   version = "v1.2.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/petar/GoLLRB"
-  packages = ["llrb"]
-  revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
-
-[[projects]]
-  name = "github.com/peterbourgon/diskv"
-  packages = ["."]
-  revision = "5f041e8faa004a95c88a202771f4cc3e991971e6"
-  version = "v2.0.1"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -351,6 +333,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2de51425791d9ac1e7a364aaf6a48dbc47a993235d3a460362bb9d0ea733c414"
+  inputs-digest = "0e72d53122cf8cc46fb08a6087fe55ac52505c3c31a9f5d684e0c477cd6bf85e"
   solver-name = "gps-cdcl"
   solver-version = 1

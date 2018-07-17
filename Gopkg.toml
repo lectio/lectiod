@@ -34,10 +34,6 @@
   version = "1.0.2"
 
 [[constraint]]
-  name = "github.com/peterbourgon/diskv"
-  version = "2.0.1"
-
-[[constraint]]
   branch = "master"
   name = "github.com/shah/observe-go"
 
@@ -62,6 +58,7 @@
     name = "github.com/vektah/gqlgen"
     unused-packages = false
 
-[[constraint]]
+[[override]]
+  # need this temporarily because github.com/ipfs/go-datastore key.go is broken (see README.md)
   name = "github.com/google/uuid"
   version = "0.2.0"

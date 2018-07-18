@@ -14,8 +14,6 @@ models:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionTimeout
   AuthenticatedSessionsCount:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionsCount
-  ConfigurationName:
-    model: github.com/lectio/lectiod/schema_defn.ConfigurationName
   ErrorMessage:
     model: github.com/lectio/lectiod/schema_defn.ErrorMessage
   ExtraLargeText:
@@ -34,5 +32,9 @@ models:
     model: github.com/lectio/lectiod/schema_defn.RegularExpression
   SmallText:
     model: github.com/lectio/lectiod/schema_defn.SmallText
+  SettingsBundleName:
+    model: github.com/lectio/lectiod/schema_defn.SettingsBundleName
+  StorageKey: 
+    model: github.com/lectio/lectiod/schema_defn.StorageKey
   URLText:
     model: github.com/lectio/lectiod/schema_defn.URLText

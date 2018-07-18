@@ -15,16 +15,10 @@ type AuthorizationInput struct {
 	ClaimMedium AuthorizationClaimMedium `json:"claimMedium"`
 	SessionID   *AuthenticatedSessionID  `json:"sessionID"`
 }
-type Configuration struct {
-	Name    ConfigurationName              `json:"name"`
-	Storage StorageConfiguration           `json:"storage"`
-	Harvest HarvestDirectivesConfiguration `json:"harvest"`
-	Errors  []*ErrorMessage                `json:"errors"`
-}
-type FileStorageConfiguration struct {
+type FileStorageSettings struct {
 	BasePath string `json:"basePath"`
 }
-type HarvestDirectivesConfiguration struct {
+type HarvestDirectivesSettings struct {
 	IgnoreURLsRegExprs        []*RegularExpression `json:"ignoreURLsRegExprs"`
 	RemoveParamsFromURLsRegEx []*RegularExpression `json:"removeParamsFromURLsRegEx"`
 	FollowHTMLRedirects       bool                 `json:"followHTMLRedirects"`
@@ -83,9 +77,19 @@ type ServiceIdentity struct {
 	Principal IdentityPrincipal  `json:"principal"`
 	Key       IdentityKey        `json:"key"`
 }
-type StorageConfiguration struct {
-	Type    StorageType               `json:"type"`
-	Filesys *FileStorageConfiguration `json:"filesys"`
+type SettingsBundle struct {
+	Name    SettingsBundleName        `json:"name"`
+	Storage StorageSettings           `json:"storage"`
+	Harvest HarvestDirectivesSettings `json:"harvest"`
+	Errors  []*ErrorMessage           `json:"errors"`
+}
+type StorageDestinationInput struct {
+	Collection StorageDestinationCollection `json:"collection"`
+	Key        StorageKey                   `json:"key"`
+}
+type StorageSettings struct {
+	Type    StorageType          `json:"type"`
+	Filesys *FileStorageSettings `json:"filesys"`
 }
 type Tenant struct {
 	ID   string       `json:"id"`
@@ -279,6 +283,42 @@ func (e *AuthorizationClaimType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AuthorizationClaimType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type StorageDestinationCollection string
+
+const (
+	StorageDestinationCollectionSessionPrincipal StorageDestinationCollection = "SESSION_PRINCIPAL"
+	StorageDestinationCollectionSessionTenant    StorageDestinationCollection = "SESSION_TENANT"
+)
+
+func (e StorageDestinationCollection) IsValid() bool {
+	switch e {
+	case StorageDestinationCollectionSessionPrincipal, StorageDestinationCollectionSessionTenant:
+		return true
+	}
+	return false
+}
+
+func (e StorageDestinationCollection) String() string {
+	return string(e)
+}
+
+func (e *StorageDestinationCollection) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = StorageDestinationCollection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid StorageDestinationCollection", str)
+	}
+	return nil
+}
+
+func (e StorageDestinationCollection) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

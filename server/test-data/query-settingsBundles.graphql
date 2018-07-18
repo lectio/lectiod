@@ -1,5 +1,5 @@
 query {
-  configs(authorization: { claimType : SESSION_ID, claimMedium : PARAM_VALUE, sessionID : "SIMULATED"}) {
+  settingsBundles(authorization: { claimType : SESSION_ID, claimMedium : PARAM_VALUE, sessionID : "SIMULATED"}) {
     name
     storage { type, filesys { basePath } }
     harvest { ignoreURLsRegExprs, removeParamsFromURLsRegEx, followHTMLRedirects}

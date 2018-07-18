@@ -1,6 +1,6 @@
 {
   "data": {
-    "config": {
+    "settingsBundle": {
       "storage": {
         "type": "FILE_SYSTEM",
         "filesys": {

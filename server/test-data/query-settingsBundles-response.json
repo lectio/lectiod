@@ -1,6 +1,6 @@
 {
     "data": {
-      "configs": [
+      "settingsBundles": [
         {
           "name": "DEFAULT",
           "storage": {

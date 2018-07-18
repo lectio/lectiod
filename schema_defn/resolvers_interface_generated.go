@@ -25,16 +25,16 @@ func NewExecutableSchema(resolvers ResolverRoot) graphql.ExecutableSchema {
 }
 
 type Resolvers interface {
-	Mutation_establishSimulatedSession(ctx context.Context, authorization PrivilegedAuthorizationInput, config ConfigurationName) (AuthenticatedSession, error)
+	Mutation_establishSimulatedSession(ctx context.Context, authorization PrivilegedAuthorizationInput, settings SettingsBundleName) (AuthenticatedSession, error)
 	Mutation_refreshSession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (AuthenticatedSession, error)
 	Mutation_destroySession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (bool, error)
 	Mutation_destroyAllSessions(ctx context.Context, authorization PrivilegedAuthorizationInput) (AuthenticatedSessionsCount, error)
-	Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
+	Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text string) (*HarvestedResources, error)
 
 	Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
 	Query_asymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error)
-	Query_configs(ctx context.Context, authorization PrivilegedAuthorizationInput) ([]*Configuration, error)
-	Query_config(ctx context.Context, authorization PrivilegedAuthorizationInput, name ConfigurationName) (*Configuration, error)
+	Query_settingsBundles(ctx context.Context, authorization PrivilegedAuthorizationInput) ([]*SettingsBundle, error)
+	Query_settingsBundle(ctx context.Context, authorization PrivilegedAuthorizationInput, name SettingsBundleName) (*SettingsBundle, error)
 	Query_urlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
 }
 
@@ -43,17 +43,17 @@ type ResolverRoot interface {
 	Query() QueryResolver
 }
 type MutationResolver interface {
-	EstablishSimulatedSession(ctx context.Context, authorization PrivilegedAuthorizationInput, config ConfigurationName) (AuthenticatedSession, error)
+	EstablishSimulatedSession(ctx context.Context, authorization PrivilegedAuthorizationInput, settings SettingsBundleName) (AuthenticatedSession, error)
 	RefreshSession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (AuthenticatedSession, error)
 	DestroySession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (bool, error)
 	DestroyAllSessions(ctx context.Context, authorization PrivilegedAuthorizationInput) (AuthenticatedSessionsCount, error)
-	SaveURLsinText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
+	SaveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text string) (*HarvestedResources, error)
 }
 type QueryResolver interface {
 	AsymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
 	AsymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error)
-	Configs(ctx context.Context, authorization PrivilegedAuthorizationInput) ([]*Configuration, error)
-	Config(ctx context.Context, authorization PrivilegedAuthorizationInput, name ConfigurationName) (*Configuration, error)
+	SettingsBundles(ctx context.Context, authorization PrivilegedAuthorizationInput) ([]*SettingsBundle, error)
+	SettingsBundle(ctx context.Context, authorization PrivilegedAuthorizationInput, name SettingsBundleName) (*SettingsBundle, error)
 	UrlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
 }
 
@@ -61,8 +61,8 @@ type shortMapper struct {
 	r ResolverRoot
 }
 
-func (s shortMapper) Mutation_establishSimulatedSession(ctx context.Context, authorization PrivilegedAuthorizationInput, config ConfigurationName) (AuthenticatedSession, error) {
-	return s.r.Mutation().EstablishSimulatedSession(ctx, authorization, config)
+func (s shortMapper) Mutation_establishSimulatedSession(ctx context.Context, authorization PrivilegedAuthorizationInput, settings SettingsBundleName) (AuthenticatedSession, error) {
+	return s.r.Mutation().EstablishSimulatedSession(ctx, authorization, settings)
 }
 
 func (s shortMapper) Mutation_refreshSession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (AuthenticatedSession, error) {
@@ -77,8 +77,8 @@ func (s shortMapper) Mutation_destroyAllSessions(ctx context.Context, authorizat
 	return s.r.Mutation().DestroyAllSessions(ctx, authorization)
 }
 
-func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error) {
-	return s.r.Mutation().SaveURLsinText(ctx, authorization, text)
+func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text string) (*HarvestedResources, error) {
+	return s.r.Mutation().SaveURLsinText(ctx, authorization, destination, text)
 }
 
 func (s shortMapper) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error) {
@@ -89,12 +89,12 @@ func (s shortMapper) Query_asymmetricCryptoPublicKeys(ctx context.Context, claim
 	return s.r.Query().AsymmetricCryptoPublicKeys(ctx, claimType)
 }
 
-func (s shortMapper) Query_configs(ctx context.Context, authorization PrivilegedAuthorizationInput) ([]*Configuration, error) {
-	return s.r.Query().Configs(ctx, authorization)
+func (s shortMapper) Query_settingsBundles(ctx context.Context, authorization PrivilegedAuthorizationInput) ([]*SettingsBundle, error) {
+	return s.r.Query().SettingsBundles(ctx, authorization)
 }
 
-func (s shortMapper) Query_config(ctx context.Context, authorization PrivilegedAuthorizationInput, name ConfigurationName) (*Configuration, error) {
-	return s.r.Query().Config(ctx, authorization, name)
+func (s shortMapper) Query_settingsBundle(ctx context.Context, authorization PrivilegedAuthorizationInput, name SettingsBundleName) (*SettingsBundle, error) {
+	return s.r.Query().SettingsBundle(ctx, authorization, name)
 }
 
 func (s shortMapper) Query_urlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error) {
@@ -151,11 +151,11 @@ type executionContext struct {
 	resolvers Resolvers
 }
 
-var configurationImplementors = []string{"Configuration"}
+var fileStorageSettingsImplementors = []string{"FileStorageSettings"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _Configuration(ctx context.Context, sel []query.Selection, obj *Configuration) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.Doc, sel, configurationImplementors, ec.Variables)
+func (ec *executionContext) _FileStorageSettings(ctx context.Context, sel []query.Selection, obj *FileStorageSettings) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, fileStorageSettingsImplementors, ec.Variables)
 
 	out := graphql.NewOrderedMap(len(fields))
 	for i, field := range fields {
@@ -163,94 +163,9 @@ func (ec *executionContext) _Configuration(ctx context.Context, sel []query.Sele
 
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("Configuration")
-		case "name":
-			out.Values[i] = ec._Configuration_name(ctx, field, obj)
-		case "storage":
-			out.Values[i] = ec._Configuration_storage(ctx, field, obj)
-		case "harvest":
-			out.Values[i] = ec._Configuration_harvest(ctx, field, obj)
-		case "errors":
-			out.Values[i] = ec._Configuration_errors(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-
-	return out
-}
-
-func (ec *executionContext) _Configuration_name(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
-	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "Configuration"
-	rctx.Args = nil
-	rctx.Field = field
-	rctx.PushField(field.Alias)
-	defer rctx.Pop()
-	res := obj.Name
-	return res
-}
-
-func (ec *executionContext) _Configuration_storage(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
-	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "Configuration"
-	rctx.Args = nil
-	rctx.Field = field
-	rctx.PushField(field.Alias)
-	defer rctx.Pop()
-	res := obj.Storage
-	return ec._StorageConfiguration(ctx, field.Selections, &res)
-}
-
-func (ec *executionContext) _Configuration_harvest(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
-	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "Configuration"
-	rctx.Args = nil
-	rctx.Field = field
-	rctx.PushField(field.Alias)
-	defer rctx.Pop()
-	res := obj.Harvest
-	return ec._HarvestDirectivesConfiguration(ctx, field.Selections, &res)
-}
-
-func (ec *executionContext) _Configuration_errors(ctx context.Context, field graphql.CollectedField, obj *Configuration) graphql.Marshaler {
-	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "Configuration"
-	rctx.Args = nil
-	rctx.Field = field
-	rctx.PushField(field.Alias)
-	defer rctx.Pop()
-	res := obj.Errors
-	arr1 := graphql.Array{}
-	for idx1 := range res {
-		arr1 = append(arr1, func() graphql.Marshaler {
-			rctx := graphql.GetResolverContext(ctx)
-			rctx.PushIndex(idx1)
-			defer rctx.Pop()
-			if res[idx1] == nil {
-				return graphql.Null
-			}
-			return *res[idx1]
-		}())
-	}
-	return arr1
-}
-
-var fileStorageConfigurationImplementors = []string{"FileStorageConfiguration"}
-
-// nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _FileStorageConfiguration(ctx context.Context, sel []query.Selection, obj *FileStorageConfiguration) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.Doc, sel, fileStorageConfigurationImplementors, ec.Variables)
-
-	out := graphql.NewOrderedMap(len(fields))
-	for i, field := range fields {
-		out.Keys[i] = field.Alias
-
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("FileStorageConfiguration")
+			out.Values[i] = graphql.MarshalString("FileStorageSettings")
 		case "basePath":
-			out.Values[i] = ec._FileStorageConfiguration_basePath(ctx, field, obj)
+			out.Values[i] = ec._FileStorageSettings_basePath(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -259,9 +174,9 @@ func (ec *executionContext) _FileStorageConfiguration(ctx context.Context, sel [
 	return out
 }
 
-func (ec *executionContext) _FileStorageConfiguration_basePath(ctx context.Context, field graphql.CollectedField, obj *FileStorageConfiguration) graphql.Marshaler {
+func (ec *executionContext) _FileStorageSettings_basePath(ctx context.Context, field graphql.CollectedField, obj *FileStorageSettings) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "FileStorageConfiguration"
+	rctx.Object = "FileStorageSettings"
 	rctx.Args = nil
 	rctx.Field = field
 	rctx.PushField(field.Alias)
@@ -270,11 +185,11 @@ func (ec *executionContext) _FileStorageConfiguration_basePath(ctx context.Conte
 	return graphql.MarshalString(res)
 }
 
-var harvestDirectivesConfigurationImplementors = []string{"HarvestDirectivesConfiguration"}
+var harvestDirectivesSettingsImplementors = []string{"HarvestDirectivesSettings"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _HarvestDirectivesConfiguration(ctx context.Context, sel []query.Selection, obj *HarvestDirectivesConfiguration) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.Doc, sel, harvestDirectivesConfigurationImplementors, ec.Variables)
+func (ec *executionContext) _HarvestDirectivesSettings(ctx context.Context, sel []query.Selection, obj *HarvestDirectivesSettings) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, harvestDirectivesSettingsImplementors, ec.Variables)
 
 	out := graphql.NewOrderedMap(len(fields))
 	for i, field := range fields {
@@ -282,13 +197,13 @@ func (ec *executionContext) _HarvestDirectivesConfiguration(ctx context.Context,
 
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("HarvestDirectivesConfiguration")
+			out.Values[i] = graphql.MarshalString("HarvestDirectivesSettings")
 		case "ignoreURLsRegExprs":
-			out.Values[i] = ec._HarvestDirectivesConfiguration_ignoreURLsRegExprs(ctx, field, obj)
+			out.Values[i] = ec._HarvestDirectivesSettings_ignoreURLsRegExprs(ctx, field, obj)
 		case "removeParamsFromURLsRegEx":
-			out.Values[i] = ec._HarvestDirectivesConfiguration_removeParamsFromURLsRegEx(ctx, field, obj)
+			out.Values[i] = ec._HarvestDirectivesSettings_removeParamsFromURLsRegEx(ctx, field, obj)
 		case "followHTMLRedirects":
-			out.Values[i] = ec._HarvestDirectivesConfiguration_followHTMLRedirects(ctx, field, obj)
+			out.Values[i] = ec._HarvestDirectivesSettings_followHTMLRedirects(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -297,9 +212,9 @@ func (ec *executionContext) _HarvestDirectivesConfiguration(ctx context.Context,
 	return out
 }
 
-func (ec *executionContext) _HarvestDirectivesConfiguration_ignoreURLsRegExprs(ctx context.Context, field graphql.CollectedField, obj *HarvestDirectivesConfiguration) graphql.Marshaler {
+func (ec *executionContext) _HarvestDirectivesSettings_ignoreURLsRegExprs(ctx context.Context, field graphql.CollectedField, obj *HarvestDirectivesSettings) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "HarvestDirectivesConfiguration"
+	rctx.Object = "HarvestDirectivesSettings"
 	rctx.Args = nil
 	rctx.Field = field
 	rctx.PushField(field.Alias)
@@ -320,9 +235,9 @@ func (ec *executionContext) _HarvestDirectivesConfiguration_ignoreURLsRegExprs(c
 	return arr1
 }
 
-func (ec *executionContext) _HarvestDirectivesConfiguration_removeParamsFromURLsRegEx(ctx context.Context, field graphql.CollectedField, obj *HarvestDirectivesConfiguration) graphql.Marshaler {
+func (ec *executionContext) _HarvestDirectivesSettings_removeParamsFromURLsRegEx(ctx context.Context, field graphql.CollectedField, obj *HarvestDirectivesSettings) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "HarvestDirectivesConfiguration"
+	rctx.Object = "HarvestDirectivesSettings"
 	rctx.Args = nil
 	rctx.Field = field
 	rctx.PushField(field.Alias)
@@ -343,9 +258,9 @@ func (ec *executionContext) _HarvestDirectivesConfiguration_removeParamsFromURLs
 	return arr1
 }
 
-func (ec *executionContext) _HarvestDirectivesConfiguration_followHTMLRedirects(ctx context.Context, field graphql.CollectedField, obj *HarvestDirectivesConfiguration) graphql.Marshaler {
+func (ec *executionContext) _HarvestDirectivesSettings_followHTMLRedirects(ctx context.Context, field graphql.CollectedField, obj *HarvestDirectivesSettings) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "HarvestDirectivesConfiguration"
+	rctx.Object = "HarvestDirectivesSettings"
 	rctx.Args = nil
 	rctx.Field = field
 	rctx.PushField(field.Alias)
@@ -706,8 +621,8 @@ func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Cont
 		}
 	}
 	args["authorization"] = arg0
-	var arg1 ConfigurationName
-	if tmp, ok := field.Args["config"]; ok {
+	var arg1 SettingsBundleName
+	if tmp, ok := field.Args["settings"]; ok {
 		var err error
 		err = (&arg1).UnmarshalGQL(tmp)
 		if err != nil {
@@ -724,7 +639,7 @@ func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Cont
 		}
 	}
 
-	args["config"] = arg1
+	args["settings"] = arg1
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Mutation"
 	rctx.Args = args
@@ -732,7 +647,7 @@ func (ec *executionContext) _Mutation_establishSimulatedSession(ctx context.Cont
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_establishSimulatedSession(ctx, args["authorization"].(PrivilegedAuthorizationInput), args["config"].(ConfigurationName))
+		return ec.resolvers.Mutation_establishSimulatedSession(ctx, args["authorization"].(PrivilegedAuthorizationInput), args["settings"].(SettingsBundleName))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -873,16 +788,26 @@ func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field 
 		}
 	}
 	args["authorization"] = arg0
-	var arg1 string
-	if tmp, ok := field.Args["text"]; ok {
+	var arg1 StorageDestinationInput
+	if tmp, ok := field.Args["destination"]; ok {
 		var err error
-		arg1, err = graphql.UnmarshalString(tmp)
+		arg1, err = UnmarshalStorageDestinationInput(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["text"] = arg1
+	args["destination"] = arg1
+	var arg2 string
+	if tmp, ok := field.Args["text"]; ok {
+		var err error
+		arg2, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["text"] = arg2
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "Mutation"
 	rctx.Args = args
@@ -890,7 +815,7 @@ func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_saveURLsinText(ctx, args["authorization"].(AuthorizationInput), args["text"].(string))
+		return ec.resolvers.Mutation_saveURLsinText(ctx, args["authorization"].(AuthorizationInput), args["destination"].(StorageDestinationInput), args["text"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1244,10 +1169,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel []query.Selection) g
 			out.Values[i] = ec._Query_asymmetricCryptoPublicKey(ctx, field)
 		case "asymmetricCryptoPublicKeys":
 			out.Values[i] = ec._Query_asymmetricCryptoPublicKeys(ctx, field)
-		case "configs":
-			out.Values[i] = ec._Query_configs(ctx, field)
-		case "config":
-			out.Values[i] = ec._Query_config(ctx, field)
+		case "settingsBundles":
+			out.Values[i] = ec._Query_settingsBundles(ctx, field)
+		case "settingsBundle":
+			out.Values[i] = ec._Query_settingsBundle(ctx, field)
 		case "urlsInText":
 			out.Values[i] = ec._Query_urlsInText(ctx, field)
 		case "__schema":
@@ -1371,7 +1296,7 @@ func (ec *executionContext) _Query_asymmetricCryptoPublicKeys(ctx context.Contex
 	})
 }
 
-func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _Query_settingsBundles(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
 	var arg0 PrivilegedAuthorizationInput
 	if tmp, ok := field.Args["authorization"]; ok {
@@ -1398,7 +1323,7 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_configs(ctx, args["authorization"].(PrivilegedAuthorizationInput))
+			return ec.resolvers.Query_settingsBundles(ctx, args["authorization"].(PrivilegedAuthorizationInput))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1407,7 +1332,7 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 		if resTmp == nil {
 			return graphql.Null
 		}
-		res := resTmp.([]*Configuration)
+		res := resTmp.([]*SettingsBundle)
 		arr1 := graphql.Array{}
 		for idx1 := range res {
 			arr1 = append(arr1, func() graphql.Marshaler {
@@ -1417,14 +1342,14 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 				if res[idx1] == nil {
 					return graphql.Null
 				}
-				return ec._Configuration(ctx, field.Selections, res[idx1])
+				return ec._SettingsBundle(ctx, field.Selections, res[idx1])
 			}())
 		}
 		return arr1
 	})
 }
 
-func (ec *executionContext) _Query_config(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _Query_settingsBundle(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	args := map[string]interface{}{}
 	var arg0 PrivilegedAuthorizationInput
 	if tmp, ok := field.Args["authorization"]; ok {
@@ -1436,7 +1361,7 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 		}
 	}
 	args["authorization"] = arg0
-	var arg1 ConfigurationName
+	var arg1 SettingsBundleName
 	if tmp, ok := field.Args["name"]; ok {
 		var err error
 		err = (&arg1).UnmarshalGQL(tmp)
@@ -1461,7 +1386,7 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_config(ctx, args["authorization"].(PrivilegedAuthorizationInput), args["name"].(ConfigurationName))
+			return ec.resolvers.Query_settingsBundle(ctx, args["authorization"].(PrivilegedAuthorizationInput), args["name"].(SettingsBundleName))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1470,11 +1395,11 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 		if resTmp == nil {
 			return graphql.Null
 		}
-		res := resTmp.(*Configuration)
+		res := resTmp.(*SettingsBundle)
 		if res == nil {
 			return graphql.Null
 		}
-		return ec._Configuration(ctx, field.Selections, res)
+		return ec._SettingsBundle(ctx, field.Selections, res)
 	})
 }
 
@@ -1644,11 +1569,11 @@ func (ec *executionContext) _ServiceIdentity_key(ctx context.Context, field grap
 	return res
 }
 
-var storageConfigurationImplementors = []string{"StorageConfiguration"}
+var settingsBundleImplementors = []string{"SettingsBundle"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _StorageConfiguration(ctx context.Context, sel []query.Selection, obj *StorageConfiguration) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.Doc, sel, storageConfigurationImplementors, ec.Variables)
+func (ec *executionContext) _SettingsBundle(ctx context.Context, sel []query.Selection, obj *SettingsBundle) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, settingsBundleImplementors, ec.Variables)
 
 	out := graphql.NewOrderedMap(len(fields))
 	for i, field := range fields {
@@ -1656,11 +1581,15 @@ func (ec *executionContext) _StorageConfiguration(ctx context.Context, sel []que
 
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("StorageConfiguration")
-		case "type":
-			out.Values[i] = ec._StorageConfiguration_type(ctx, field, obj)
-		case "filesys":
-			out.Values[i] = ec._StorageConfiguration_filesys(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("SettingsBundle")
+		case "name":
+			out.Values[i] = ec._SettingsBundle_name(ctx, field, obj)
+		case "storage":
+			out.Values[i] = ec._SettingsBundle_storage(ctx, field, obj)
+		case "harvest":
+			out.Values[i] = ec._SettingsBundle_harvest(ctx, field, obj)
+		case "errors":
+			out.Values[i] = ec._SettingsBundle_errors(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1669,9 +1598,90 @@ func (ec *executionContext) _StorageConfiguration(ctx context.Context, sel []que
 	return out
 }
 
-func (ec *executionContext) _StorageConfiguration_type(ctx context.Context, field graphql.CollectedField, obj *StorageConfiguration) graphql.Marshaler {
+func (ec *executionContext) _SettingsBundle_name(ctx context.Context, field graphql.CollectedField, obj *SettingsBundle) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "StorageConfiguration"
+	rctx.Object = "SettingsBundle"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Name
+	return res
+}
+
+func (ec *executionContext) _SettingsBundle_storage(ctx context.Context, field graphql.CollectedField, obj *SettingsBundle) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "SettingsBundle"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Storage
+	return ec._StorageSettings(ctx, field.Selections, &res)
+}
+
+func (ec *executionContext) _SettingsBundle_harvest(ctx context.Context, field graphql.CollectedField, obj *SettingsBundle) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "SettingsBundle"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Harvest
+	return ec._HarvestDirectivesSettings(ctx, field.Selections, &res)
+}
+
+func (ec *executionContext) _SettingsBundle_errors(ctx context.Context, field graphql.CollectedField, obj *SettingsBundle) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "SettingsBundle"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Errors
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			if res[idx1] == nil {
+				return graphql.Null
+			}
+			return *res[idx1]
+		}())
+	}
+	return arr1
+}
+
+var storageSettingsImplementors = []string{"StorageSettings"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _StorageSettings(ctx context.Context, sel []query.Selection, obj *StorageSettings) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.Doc, sel, storageSettingsImplementors, ec.Variables)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StorageSettings")
+		case "type":
+			out.Values[i] = ec._StorageSettings_type(ctx, field, obj)
+		case "filesys":
+			out.Values[i] = ec._StorageSettings_filesys(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _StorageSettings_type(ctx context.Context, field graphql.CollectedField, obj *StorageSettings) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "StorageSettings"
 	rctx.Args = nil
 	rctx.Field = field
 	rctx.PushField(field.Alias)
@@ -1680,9 +1690,9 @@ func (ec *executionContext) _StorageConfiguration_type(ctx context.Context, fiel
 	return res
 }
 
-func (ec *executionContext) _StorageConfiguration_filesys(ctx context.Context, field graphql.CollectedField, obj *StorageConfiguration) graphql.Marshaler {
+func (ec *executionContext) _StorageSettings_filesys(ctx context.Context, field graphql.CollectedField, obj *StorageSettings) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "StorageConfiguration"
+	rctx.Object = "StorageSettings"
 	rctx.Args = nil
 	rctx.Field = field
 	rctx.PushField(field.Alias)
@@ -1691,7 +1701,7 @@ func (ec *executionContext) _StorageConfiguration_filesys(ctx context.Context, f
 	if res == nil {
 		return graphql.Null
 	}
-	return ec._FileStorageConfiguration(ctx, field.Selections, res)
+	return ec._FileStorageSettings(ctx, field.Selections, res)
 }
 
 var tenantImplementors = []string{"Tenant", "Party"}
@@ -2707,6 +2717,30 @@ func UnmarshalPrivilegedAuthorizationInput(v interface{}) (PrivilegedAuthorizati
 	return it, nil
 }
 
+func UnmarshalStorageDestinationInput(v interface{}) (StorageDestinationInput, error) {
+	var it StorageDestinationInput
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "collection":
+			var err error
+			err = (&it.Collection).UnmarshalGQL(v)
+			if err != nil {
+				return it, err
+			}
+		case "key":
+			var err error
+			err = (&it.Key).UnmarshalGQL(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) introspectSchema() *introspection.Schema {
 	return introspection.WrapSchema(parsedSchema)
 }
@@ -2729,11 +2763,13 @@ scalar AuthenticatedSessionsCount
 scalar URLText
 scalar RegularExpression
 scalar ErrorMessage
-scalar ConfigurationName
 
 scalar IdentityPrincipal
 scalar IdentityPassword
 scalar IdentityKey
+
+scalar StorageKey
+scalar SettingsBundleName
 
 # scalar Document
 # scalar File
@@ -2792,7 +2828,7 @@ interface AuthenticatedSession {
   identity: AuthenticationIdentity!
   timeOutType : AuthenticatedSessionTmeoutType!
   timeOut: AuthenticatedSessionTimeout!
-  configName : ConfigurationName
+  settingsBundleName : SettingsBundleName
 }
 
 interface Party {
@@ -2849,25 +2885,25 @@ enum StorageType {
   FILE_SYSTEM
 }
 
-type FileStorageConfiguration {
+type FileStorageSettings {
   basePath : String!
 }
 
-type StorageConfiguration {
+type StorageSettings {
   type: StorageType!
-  filesys : FileStorageConfiguration
+  filesys : FileStorageSettings
 }
 
-type HarvestDirectivesConfiguration {
+type HarvestDirectivesSettings {
   ignoreURLsRegExprs : [RegularExpression]
   removeParamsFromURLsRegEx : [RegularExpression]
   followHTMLRedirects : Boolean!
 }
 
-type Configuration {
-  name : ConfigurationName!
-  storage: StorageConfiguration!
-  harvest : HarvestDirectivesConfiguration!
+type SettingsBundle {
+  name : SettingsBundleName!
+  storage: StorageSettings!
+  harvest : HarvestDirectivesSettings!
   errors: [ErrorMessage]
 }
 
@@ -2914,19 +2950,29 @@ input PrivilegedAuthorizationInput {
   sessionID: AuthenticatedSessionID
 }
 
+enum StorageDestinationCollection {
+  SESSION_PRINCIPAL
+  SESSION_TENANT
+}
+
+input StorageDestinationInput {
+  collection : StorageDestinationCollection!
+  key: StorageKey!
+}
+
 type Query {
   asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
   asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
-  configs(authorization : PrivilegedAuthorizationInput!) : [Configuration]
-  config(authorization : PrivilegedAuthorizationInput!, name : ConfigurationName!): Configuration
+  settingsBundles(authorization : PrivilegedAuthorizationInput!) : [SettingsBundle]
+  settingsBundle(authorization : PrivilegedAuthorizationInput!, name : SettingsBundleName!): SettingsBundle
   urlsInText(authorization : AuthorizationInput!, text: String!): HarvestedResources
 }
 
 type Mutation {
-  establishSimulatedSession(authorization : PrivilegedAuthorizationInput!, config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  establishSimulatedSession(authorization : PrivilegedAuthorizationInput!, settings : SettingsBundleName = "DEFAULT") : AuthenticatedSession
   refreshSession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : AuthenticatedSession
   destroySession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : Boolean!
   destroyAllSessions(authorization : PrivilegedAuthorizationInput!) : AuthenticatedSessionsCount!
-  saveURLsinText(authorization : AuthorizationInput!, text : String!) : HarvestedResources
+  saveURLsinText(authorization : AuthorizationInput!, destination: StorageDestinationInput!, text : String!) : HarvestedResources
 }
 `)

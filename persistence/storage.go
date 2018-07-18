@@ -14,14 +14,14 @@ import (
 )
 
 type Datastore struct {
-	config      *schema.StorageConfiguration
+	config      *schema.StorageSettings
 	store       datastore.Datastore
 	storeError  error
 	observatory observe.Observatory
 }
 
 // NewDatastore constructs a Datastore
-func NewDatastore(observatory observe.Observatory, config *schema.StorageConfiguration, parent opentracing.Span) *Datastore {
+func NewDatastore(observatory observe.Observatory, config *schema.StorageSettings, parent opentracing.Span) *Datastore {
 	span := observatory.StartChildTrace("persistence.NewDatastore", parent)
 	defer span.Finish()
 
@@ -40,14 +40,14 @@ func NewDatastore(observatory observe.Observatory, config *schema.StorageConfigu
 			opentrext.Error.Set(span, true)
 			span.LogFields(log.Error(error))
 			result.storeError = err
-			result.store = datastore.NewMapDatastore()
+			result.store = datastore.NewLogDatastore(datastore.NewMapDatastore(), "ErrorStore")
 		}
 	} else {
 		error := fmt.Errorf("Unkown storage type '%s', creating in memory store", config.Type)
 		opentrext.Error.Set(span, true)
 		span.LogFields(log.Error(error))
 		result.storeError = error
-		result.store = datastore.NewMapDatastore()
+		result.store = datastore.NewLogDatastore(datastore.NewMapDatastore(), "ErrorStore")
 	}
 
 	return result

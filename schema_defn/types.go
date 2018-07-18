@@ -13,12 +13,14 @@ type ExtraLargeText string
 type URLText string
 type RegularExpression string
 type ErrorMessage string
-type ConfigurationName string
+type SettingsBundleName string
 
 type AsymmetricCryptoPublicKey string
 type IdentityPrincipal string
 type IdentityPassword string
 type IdentityKey string
+
+type StorageKey string
 
 type AuthenticatedSessionID string
 type AuthenticatedSessionsCount uint
@@ -52,14 +54,14 @@ func (t ErrorMessage) MarshalGQL(w io.Writer) {
 	graphql.MarshalString(string(t)).MarshalGQL(w)
 }
 
-func (t ConfigurationName) MarshalGQL(w io.Writer) {
+func (t SettingsBundleName) MarshalGQL(w io.Writer) {
 	graphql.MarshalString(string(t)).MarshalGQL(w)
 }
 
-func (t *ConfigurationName) UnmarshalGQL(v interface{}) error {
+func (t *SettingsBundleName) UnmarshalGQL(v interface{}) error {
 	str, err := graphql.UnmarshalString(v)
 	if err == nil {
-		*t = ConfigurationName(str)
+		*t = SettingsBundleName(str)
 	}
 	return err
 }
@@ -106,4 +108,16 @@ func (t AuthenticatedSessionTimeout) MarshalGQL(w io.Writer) {
 
 func (t AuthenticatedSessionsCount) MarshalGQL(w io.Writer) {
 	graphql.MarshalInt(int(t)).MarshalGQL(w)
+}
+
+func (t StorageKey) MarshalGQL(w io.Writer) {
+	graphql.MarshalString(string(t)).MarshalGQL(w)
+}
+
+func (t *StorageKey) UnmarshalGQL(v interface{}) error {
+	str, err := graphql.UnmarshalString(v)
+	if err == nil {
+		*t = StorageKey(str)
+	}
+	return err
 }

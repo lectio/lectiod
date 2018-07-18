@@ -8,11 +8,13 @@ scalar AuthenticatedSessionsCount
 scalar URLText
 scalar RegularExpression
 scalar ErrorMessage
-scalar ConfigurationName
 
 scalar IdentityPrincipal
 scalar IdentityPassword
 scalar IdentityKey
+
+scalar StorageKey
+scalar SettingsBundleName
 
 # scalar Document
 # scalar File
@@ -71,7 +73,7 @@ interface AuthenticatedSession {
   identity: AuthenticationIdentity!
   timeOutType : AuthenticatedSessionTmeoutType!
   timeOut: AuthenticatedSessionTimeout!
-  configName : ConfigurationName
+  settingsBundleName : SettingsBundleName
 }
 
 interface Party {
@@ -128,25 +130,25 @@ enum StorageType {
   FILE_SYSTEM
 }
 
-type FileStorageConfiguration {
+type FileStorageSettings {
   basePath : String!
 }
 
-type StorageConfiguration {
+type StorageSettings {
   type: StorageType!
-  filesys : FileStorageConfiguration
+  filesys : FileStorageSettings
 }
 
-type HarvestDirectivesConfiguration {
+type HarvestDirectivesSettings {
   ignoreURLsRegExprs : [RegularExpression]
   removeParamsFromURLsRegEx : [RegularExpression]
   followHTMLRedirects : Boolean!
 }
 
-type Configuration {
-  name : ConfigurationName!
-  storage: StorageConfiguration!
-  harvest : HarvestDirectivesConfiguration!
+type SettingsBundle {
+  name : SettingsBundleName!
+  storage: StorageSettings!
+  harvest : HarvestDirectivesSettings!
   errors: [ErrorMessage]
 }
 
@@ -193,18 +195,28 @@ input PrivilegedAuthorizationInput {
   sessionID: AuthenticatedSessionID
 }
 
+enum StorageDestinationCollection {
+  SESSION_PRINCIPAL
+  SESSION_TENANT
+}
+
+input StorageDestinationInput {
+  collection : StorageDestinationCollection!
+  key: StorageKey!
+}
+
 type Query {
   asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
   asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
-  configs(authorization : PrivilegedAuthorizationInput!) : [Configuration]
-  config(authorization : PrivilegedAuthorizationInput!, name : ConfigurationName!): Configuration
+  settingsBundles(authorization : PrivilegedAuthorizationInput!) : [SettingsBundle]
+  settingsBundle(authorization : PrivilegedAuthorizationInput!, name : SettingsBundleName!): SettingsBundle
   urlsInText(authorization : AuthorizationInput!, text: String!): HarvestedResources
 }
 
 type Mutation {
-  establishSimulatedSession(authorization : PrivilegedAuthorizationInput!, config : ConfigurationName = "DEFAULT") : AuthenticatedSession
+  establishSimulatedSession(authorization : PrivilegedAuthorizationInput!, settings : SettingsBundleName = "DEFAULT") : AuthenticatedSession
   refreshSession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : AuthenticatedSession
   destroySession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : Boolean!
   destroyAllSessions(authorization : PrivilegedAuthorizationInput!) : AuthenticatedSessionsCount!
-  saveURLsinText(authorization : AuthorizationInput!, text : String!) : HarvestedResources
+  saveURLsinText(authorization : AuthorizationInput!, destination: StorageDestinationInput!, text : String!) : HarvestedResources
 }

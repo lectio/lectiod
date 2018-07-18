@@ -86,11 +86,11 @@ func (suite *GraphQLOverHTTPServerSuite) testGraphQLQuery(queryName string) {
 }
 
 func (suite *GraphQLOverHTTPServerSuite) TestConfigGraphQLQuery() {
-	suite.testGraphQLQuery("config")
+	suite.testGraphQLQuery("settingsBundle")
 }
 
 func (suite *GraphQLOverHTTPServerSuite) TestConfigsGraphQLQuery() {
-	suite.testGraphQLQuery("configs")
+	suite.testGraphQLQuery("settingsBundles")
 }
 
 func (suite *GraphQLOverHTTPServerSuite) TestUrlsInTextGraphQLQuery() {

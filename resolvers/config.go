@@ -18,31 +18,31 @@ import (
 	// github.com/rcrowley/go-metrics
 )
 
-type ConfigurationsMap map[schema.ConfigurationName]*Configuration
+type ConfigurationsMap map[schema.SettingsBundleName]*Configuration
 type AuthenticatedSessionsMap map[schema.AuthenticatedSessionID]schema.AuthenticatedSession
 
 const (
-	DefaultConfigurationName schema.ConfigurationName = "DEFAULT"
+	DefaultSettingsBundleName schema.SettingsBundleName = "DEFAULT"
 )
 
 type ignoreURLsRegExList []*regexp.Regexp
 type cleanURLsRegExList []*regexp.Regexp
 
-func (l *ignoreURLsRegExList) Add(config *schema.Configuration, value schema.RegularExpression) {
+func (l *ignoreURLsRegExList) Add(settings *schema.SettingsBundle, value schema.RegularExpression) {
 	if value != "" {
 		re, error := regexp.Compile(string(value))
 		if error != nil {
 			message := schema.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
-			config.Errors = append(config.Errors, &message)
+			settings.Errors = append(settings.Errors, &message)
 			return
 		}
 		*l = append(*l, re)
 	}
 }
 
-func (l *ignoreURLsRegExList) AddSeveral(config *schema.Configuration, values []*schema.RegularExpression) {
+func (l *ignoreURLsRegExList) AddSeveral(settings *schema.SettingsBundle, values []*schema.RegularExpression) {
 	for _, value := range values {
-		l.Add(config, *value)
+		l.Add(settings, *value)
 	}
 }
 
@@ -56,21 +56,21 @@ func (l ignoreURLsRegExList) IgnoreDiscoveredResource(url *url.URL) (bool, strin
 	return false, ""
 }
 
-func (l *cleanURLsRegExList) Add(config *schema.Configuration, value schema.RegularExpression) {
+func (l *cleanURLsRegExList) Add(settings *schema.SettingsBundle, value schema.RegularExpression) {
 	if value != "" {
 		re, error := regexp.Compile(string(value))
 		if error != nil {
 			message := schema.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
-			config.Errors = append(config.Errors, &message)
+			settings.Errors = append(settings.Errors, &message)
 			return
 		}
 		*l = append(*l, re)
 	}
 }
 
-func (l *cleanURLsRegExList) AddSeveral(config *schema.Configuration, values []*schema.RegularExpression) {
+func (l *cleanURLsRegExList) AddSeveral(settings *schema.SettingsBundle, values []*schema.RegularExpression) {
 	for _, value := range values {
-		l.Add(config, *value)
+		l.Add(settings, *value)
 	}
 }
 
@@ -89,15 +89,15 @@ func (l cleanURLsRegExList) RemoveQueryParamFromResource(paramName string) (bool
 }
 
 type Configuration struct {
-	settings                  *schema.Configuration
+	settings                  *schema.SettingsBundle
 	store                     *persistence.Datastore
 	contentHarvester          *harvester.ContentHarvester
 	ignoreURLsRegEx           ignoreURLsRegExList
 	removeParamsFromURLsRegEx cleanURLsRegExList
 }
 
-func createDefaultSettings(name schema.ConfigurationName) *schema.Configuration {
-	result := new(schema.Configuration)
+func createDefaultSettings(name schema.SettingsBundleName) *schema.SettingsBundle {
+	result := new(schema.SettingsBundle)
 	result.Name = name
 
 	twitterStatusRegExpr := schema.RegularExpression(`^https://twitter.com/(.*?)/status/(.*)$`)
@@ -109,13 +109,13 @@ func createDefaultSettings(name schema.ConfigurationName) *schema.Configuration 
 	result.Harvest.FollowHTMLRedirects = true
 
 	result.Storage.Type = schema.StorageTypeFileSystem
-	result.Storage.Filesys = new(schema.FileStorageConfiguration)
+	result.Storage.Filesys = new(schema.FileStorageSettings)
 	result.Storage.Filesys.BasePath = "./tmp/diskv_data"
 
 	return result
 }
 
-func NewViperConfiguration(sr *SchemaResolvers, provider ConfigPathProvider, configName schema.ConfigurationName, parent opentracing.Span) *Configuration {
+func NewViperConfiguration(sr *SchemaResolvers, provider ConfigPathProvider, configName schema.SettingsBundleName, parent opentracing.Span) *Configuration {
 	span := sr.observatory.StartChildTrace("resolvers.NewViperConfiguration", parent)
 	defer span.Finish()
 
@@ -148,7 +148,7 @@ func NewViperConfiguration(sr *SchemaResolvers, provider ConfigPathProvider, con
 	return result
 }
 
-func NewDefaultConfiguration(sr *SchemaResolvers, name schema.ConfigurationName, parent opentracing.Span) *Configuration {
+func NewDefaultConfiguration(sr *SchemaResolvers, name schema.SettingsBundleName, parent opentracing.Span) *Configuration {
 	result := new(Configuration)
 	result.settings = createDefaultSettings(name)
 	result.ConfigureContentHarvester(sr, parent)
@@ -159,8 +159,12 @@ func (c *Configuration) Close() {
 	c.store.Close()
 }
 
-func (c *Configuration) Settings() *schema.Configuration {
+func (c *Configuration) Settings() *schema.SettingsBundle {
 	return c.settings
+}
+
+func (c *Configuration) Store() *persistence.Datastore {
+	return c.store
 }
 
 // ConfigureContentHarvester uses the config parameters in Configuration().Harvest to setup the content harvester

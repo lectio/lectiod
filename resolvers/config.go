@@ -6,8 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-ds-flatfs"
+	"github.com/lectio/lectiod/persistence"
 	schema "github.com/lectio/lectiod/schema_defn"
 	"github.com/spf13/viper"
 
@@ -91,7 +90,7 @@ func (l cleanURLsRegExList) RemoveQueryParamFromResource(paramName string) (bool
 
 type Configuration struct {
 	settings                  *schema.Configuration
-	store                     datastore.Datastore
+	store                     *persistence.Datastore
 	contentHarvester          *harvester.ContentHarvester
 	ignoreURLsRegEx           ignoreURLsRegExList
 	removeParamsFromURLsRegEx cleanURLsRegExList
@@ -157,7 +156,7 @@ func NewDefaultConfiguration(sr *SchemaResolvers, name schema.ConfigurationName,
 }
 
 func (c *Configuration) Close() {
-
+	c.store.Close()
 }
 
 func (c *Configuration) Settings() *schema.Configuration {
@@ -169,19 +168,7 @@ func (c *Configuration) ConfigureContentHarvester(sr *SchemaResolvers, parent op
 	span := sr.observatory.StartChildTrace("resolvers.ConfigureContentHarvester", parent)
 	defer span.Finish()
 
-	if c.settings.Storage.Type == schema.StorageTypeFileSystem {
-		store, err := flatfs.CreateOrOpen(c.settings.Storage.Filesys.BasePath, flatfs.IPFS_DEF_SHARD, true)
-		if err == nil {
-			c.store = store
-		} else {
-			opentrext.Error.Set(span, true)
-			span.LogFields(log.Error(err))
-		}
-	} else {
-		error := fmt.Errorf("Unkown storage type '%s'", c.settings.Storage.Type)
-		opentrext.Error.Set(span, true)
-		span.LogFields(log.Error(error))
-	}
+	c.store = persistence.NewDatastore(sr.observatory, &c.settings.Storage, span)
 	c.ignoreURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.IgnoreURLsRegExprs)
 	c.removeParamsFromURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.RemoveParamsFromURLsRegEx)
 	c.contentHarvester = harvester.MakeContentHarvester(sr.observatory, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)

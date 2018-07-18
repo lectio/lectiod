@@ -4,7 +4,7 @@
       "storage": {
         "type": "FILE_SYSTEM",
         "filesys": {
-          "basePath": "./tmp/diskv_data"
+          "basePath": "/tmp/flatfs"
         }
       },
       "harvest": {

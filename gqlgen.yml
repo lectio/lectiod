@@ -14,10 +14,14 @@ models:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionTimeout
   AuthenticatedSessionsCount:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionsCount
+  Document:
+    model: github.com/lectio/lectiod/schema_defn.Document
   ErrorMessage:
     model: github.com/lectio/lectiod/schema_defn.ErrorMessage
   ExtraLargeText:
     model: github.com/lectio/lectiod/schema_defn.ExtraLargeText
+  File:
+    model: github.com/lectio/lectiod/schema_defn.File
   IdentityKey:
     model: github.com/lectio/lectiod/schema_defn.IdentityKey
   IdentityPassword:
@@ -37,4 +41,19 @@ models:
   StorageKey: 
     model: github.com/lectio/lectiod/schema_defn.StorageKey
   URLText:
-    model: github.com/lectio/lectiod/schema_defn.URLText
+    model: github.com/lectio/lectiod/schema_defn.URLText 
+  Date:
+    model: github.com/lectio/lectiod/schema_defn.Date
+  PastDate:
+    model: github.com/lectio/lectiod/schema_defn.PastDate
+  FutureDate:
+    model: github.com/lectio/lectiod/schema_defn.FutureDate
+  DateTime:
+    model: github.com/lectio/lectiod/schema_defn.DateTime
+  PastDateTime:
+    model: github.com/lectio/lectiod/schema_defn.PastDateTime
+  FutureDateTime:
+    model: github.com/lectio/lectiod/schema_defn.FutureDateTime
+  Timestamp:
+    model: github.com/lectio/lectiod/schema_defn.Timestamp
+

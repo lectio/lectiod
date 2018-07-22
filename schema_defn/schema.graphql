@@ -1,10 +1,10 @@
 # TODO Add [feature flags/toggles](https://martinfowler.com/articles/feature-toggles.html) data types and fields.
 #      The schema should help manage what fields should be turned on/off per tenant, time, authorization, etc.
 
-# scalar SmallText
-# scalar MediumText
-# scalar LargeText
-# scalar ExtraLargeText
+scalar SmallText
+scalar MediumText
+scalar LargeText
+scalar ExtraLargeText
 scalar AsymmetricCryptoPublicKey
 scalar AuthenticatedSessionID
 scalar AuthenticatedSessionsCount
@@ -19,16 +19,16 @@ scalar IdentityKey
 scalar StorageKey
 scalar SettingsBundleName
 
-# scalar Document
-# scalar File
+scalar Document
+scalar File
 
-# scalar Date
-# scalar PastDate
-# scalar FutureDate
-# scalar DateTime
-# scalar PastDateTime
-# scalar FutureDateTime
-# scalar Timestamp
+scalar Date
+scalar PastDate
+scalar FutureDate
+scalar DateTime
+scalar PastDateTime
+scalar FutureDateTime
+scalar Timestamp
 
 scalar AuthenticatedSessionTimeout
 

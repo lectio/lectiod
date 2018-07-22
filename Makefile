@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 MAKEFLAGS := --silent
+GO_VERSION := $(shell go version | cut -d' ' -f3 | cut -d. -f2)
 
 ## TODO Check out https://github.com/genuinetools/img/blob/master/Makefile to borrow some targets
 
@@ -44,6 +45,37 @@ test: generate-all
 	export JAEGER_SAMPLER_TYPE=const
 	export JAEGER_SAMPLER_PARAM=1
 	cd server && go test -v
+
+## Check to see if gofmt is required for any files
+fmt:
+	echo gofmt -l .
+	OUTPUT=`gofmt -l . 2>&1`; \
+	if [ "$$OUTPUT" ]; then \
+		echo "gofmt must be run on the following files:"; \
+		echo "$$OUTPUT"; \
+		exit 1; \
+	fi
+
+## Run go-vet on the files in this project. Only run on go1.5+
+vet:
+	go tool vet -atomic -bool -copylocks -nilfunc -printf -shadow -rangeloops -unreachable -unsafeptr -unusedresult .
+
+## Run linter on the files in this project. Only run on go1.5+
+# go get github.com/golang/lint/golint
+# Capture output and force failure when there is non-empty output
+# Only run on go1.5+
+lint:
+	echo golint ./...
+	OUTPUT=`golint ./... 2>&1`; \
+	if [ "$$OUTPUT" ]; then \
+		echo "golint errors:"; \
+		echo "$$OUTPUT"; \
+		exit 1; \
+	fi
+
+## Validate the files in this project (run fmt, vet, lint)
+# TODO check out https://github.com/golangci/awesome-go-linters for more validators
+validate: fmt vet lint
 
 TARGET_MAX_CHAR_NUM=20
 ## All targets should have a ## Help text above the target and they'll be automatically collected

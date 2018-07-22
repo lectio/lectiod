@@ -1,3 +1,6 @@
+# TODO Add [feature flags/toggles](https://martinfowler.com/articles/feature-toggles.html) data types and fields.
+#      The schema should help manage what fields should be turned on/off per tenant, time, authorization, etc.
+
 # scalar SmallText
 # scalar MediumText
 # scalar LargeText

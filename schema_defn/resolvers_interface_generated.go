@@ -29,13 +29,13 @@ type Resolvers interface {
 	Mutation_refreshSession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (AuthenticatedSession, error)
 	Mutation_destroySession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (bool, error)
 	Mutation_destroyAllSessions(ctx context.Context, authorization PrivilegedAuthorizationInput) (AuthenticatedSessionsCount, error)
-	Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text string) (*HarvestedResources, error)
+	Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text LargeText) (*HarvestedResources, error)
 
-	Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
+	Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId AsymmetricCryptoPublicKeyName) (AuthorizationClaimCryptoKey, error)
 	Query_asymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error)
 	Query_settingsBundles(ctx context.Context, authorization PrivilegedAuthorizationInput) ([]*SettingsBundle, error)
 	Query_settingsBundle(ctx context.Context, authorization PrivilegedAuthorizationInput, name SettingsBundleName) (*SettingsBundle, error)
-	Query_urlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
+	Query_urlsInText(ctx context.Context, authorization AuthorizationInput, text LargeText) (*HarvestedResources, error)
 }
 
 type ResolverRoot interface {
@@ -47,14 +47,14 @@ type MutationResolver interface {
 	RefreshSession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (AuthenticatedSession, error)
 	DestroySession(ctx context.Context, privilegedAuthz PrivilegedAuthorizationInput, authorization AuthorizationInput) (bool, error)
 	DestroyAllSessions(ctx context.Context, authorization PrivilegedAuthorizationInput) (AuthenticatedSessionsCount, error)
-	SaveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text string) (*HarvestedResources, error)
+	SaveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text LargeText) (*HarvestedResources, error)
 }
 type QueryResolver interface {
-	AsymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error)
+	AsymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId AsymmetricCryptoPublicKeyName) (AuthorizationClaimCryptoKey, error)
 	AsymmetricCryptoPublicKeys(ctx context.Context, claimType *AuthorizationClaimType) ([]*AuthorizationClaimCryptoKey, error)
 	SettingsBundles(ctx context.Context, authorization PrivilegedAuthorizationInput) ([]*SettingsBundle, error)
 	SettingsBundle(ctx context.Context, authorization PrivilegedAuthorizationInput, name SettingsBundleName) (*SettingsBundle, error)
-	UrlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error)
+	UrlsInText(ctx context.Context, authorization AuthorizationInput, text LargeText) (*HarvestedResources, error)
 }
 
 type shortMapper struct {
@@ -77,11 +77,11 @@ func (s shortMapper) Mutation_destroyAllSessions(ctx context.Context, authorizat
 	return s.r.Mutation().DestroyAllSessions(ctx, authorization)
 }
 
-func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text string) (*HarvestedResources, error) {
+func (s shortMapper) Mutation_saveURLsinText(ctx context.Context, authorization AuthorizationInput, destination StorageDestinationInput, text LargeText) (*HarvestedResources, error) {
 	return s.r.Mutation().SaveURLsinText(ctx, authorization, destination, text)
 }
 
-func (s shortMapper) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId string) (AuthorizationClaimCryptoKey, error) {
+func (s shortMapper) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType AuthorizationClaimType, keyId AsymmetricCryptoPublicKeyName) (AuthorizationClaimCryptoKey, error) {
 	return s.r.Query().AsymmetricCryptoPublicKey(ctx, claimType, keyId)
 }
 
@@ -97,7 +97,7 @@ func (s shortMapper) Query_settingsBundle(ctx context.Context, authorization Pri
 	return s.r.Query().SettingsBundle(ctx, authorization, name)
 }
 
-func (s shortMapper) Query_urlsInText(ctx context.Context, authorization AuthorizationInput, text string) (*HarvestedResources, error) {
+func (s shortMapper) Query_urlsInText(ctx context.Context, authorization AuthorizationInput, text LargeText) (*HarvestedResources, error) {
 	return s.r.Query().UrlsInText(ctx, authorization, text)
 }
 
@@ -182,7 +182,7 @@ func (ec *executionContext) _FileStorageSettings_basePath(ctx context.Context, f
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.BasePath
-	return graphql.MarshalString(res)
+	return res
 }
 
 var harvestDirectivesSettingsImplementors = []string{"HarvestDirectivesSettings"}
@@ -455,7 +455,7 @@ func (ec *executionContext) _HarvestedResources_text(ctx context.Context, field 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Text
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _HarvestedResources_harvested(ctx context.Context, field graphql.CollectedField, obj *HarvestedResources) graphql.Marshaler {
@@ -571,7 +571,7 @@ func (ec *executionContext) _IgnoredResource_reason(ctx context.Context, field g
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Reason
-	return graphql.MarshalString(res)
+	return res
 }
 
 var mutationImplementors = []string{"Mutation"}
@@ -798,10 +798,10 @@ func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field 
 		}
 	}
 	args["destination"] = arg1
-	var arg2 string
+	var arg2 LargeText
 	if tmp, ok := field.Args["text"]; ok {
 		var err error
-		arg2, err = graphql.UnmarshalString(tmp)
+		err = (&arg2).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -815,7 +815,7 @@ func (ec *executionContext) _Mutation_saveURLsinText(ctx context.Context, field 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Mutation_saveURLsinText(ctx, args["authorization"].(AuthorizationInput), args["destination"].(StorageDestinationInput), args["text"].(string))
+		return ec.resolvers.Mutation_saveURLsinText(ctx, args["authorization"].(AuthorizationInput), args["destination"].(StorageDestinationInput), args["text"].(LargeText))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -879,7 +879,7 @@ func (ec *executionContext) _Organization_name(ctx context.Context, field graphq
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Name
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _Organization_units(ctx context.Context, field graphql.CollectedField, obj *Organization) graphql.Marshaler {
@@ -976,7 +976,7 @@ func (ec *executionContext) _OrganizationalUnit_name(ctx context.Context, field 
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Name
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _OrganizationalUnit_units(ctx context.Context, field graphql.CollectedField, obj *OrganizationalUnit) graphql.Marshaler {
@@ -1077,7 +1077,7 @@ func (ec *executionContext) _Person_name(ctx context.Context, field graphql.Coll
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Name
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _Person_firstName(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
@@ -1088,7 +1088,7 @@ func (ec *executionContext) _Person_firstName(ctx context.Context, field graphql
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.FirstName
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _Person_lastName(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
@@ -1099,7 +1099,7 @@ func (ec *executionContext) _Person_lastName(ctx context.Context, field graphql.
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.LastName
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _Person_users(ctx context.Context, field graphql.CollectedField, obj *Person) graphql.Marshaler {
@@ -1199,10 +1199,10 @@ func (ec *executionContext) _Query_asymmetricCryptoPublicKey(ctx context.Context
 		}
 	}
 	args["claimType"] = arg0
-	var arg1 string
+	var arg1 AsymmetricCryptoPublicKeyName
 	if tmp, ok := field.Args["keyId"]; ok {
 		var err error
-		arg1, err = graphql.UnmarshalString(tmp)
+		err = (&arg1).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -1224,7 +1224,7 @@ func (ec *executionContext) _Query_asymmetricCryptoPublicKey(ctx context.Context
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_asymmetricCryptoPublicKey(ctx, args["claimType"].(AuthorizationClaimType), args["keyId"].(string))
+			return ec.resolvers.Query_asymmetricCryptoPublicKey(ctx, args["claimType"].(AuthorizationClaimType), args["keyId"].(AsymmetricCryptoPublicKeyName))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1415,10 +1415,10 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 		}
 	}
 	args["authorization"] = arg0
-	var arg1 string
+	var arg1 LargeText
 	if tmp, ok := field.Args["text"]; ok {
 		var err error
-		arg1, err = graphql.UnmarshalString(tmp)
+		err = (&arg1).UnmarshalGQL(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
@@ -1440,7 +1440,7 @@ func (ec *executionContext) _Query_urlsInText(ctx context.Context, field graphql
 		}()
 
 		resTmp, err := ec.ResolverMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.Query_urlsInText(ctx, args["authorization"].(AuthorizationInput), args["text"].(string))
+			return ec.resolvers.Query_urlsInText(ctx, args["authorization"].(AuthorizationInput), args["text"].(LargeText))
 		})
 		if err != nil {
 			ec.Error(ctx, err)
@@ -1750,7 +1750,7 @@ func (ec *executionContext) _Tenant_name(ctx context.Context, field graphql.Coll
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Name
-	return graphql.MarshalString(res)
+	return res
 }
 
 func (ec *executionContext) _Tenant_org(ctx context.Context, field graphql.CollectedField, obj *Tenant) graphql.Marshaler {
@@ -1808,7 +1808,7 @@ func (ec *executionContext) _UnharvestedResource_reason(ctx context.Context, fie
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	res := obj.Reason
-	return graphql.MarshalString(res)
+	return res
 }
 
 var userIdentityImplementors = []string{"UserIdentity", "AuthenticationIdentity"}
@@ -2753,14 +2753,24 @@ func (ec *executionContext) introspectType(name string) *introspection.Type {
 	return introspection.WrapType(t)
 }
 
-var parsedSchema = schema.MustParse(`# TODO Add [feature flags/toggles](https://martinfowler.com/articles/feature-toggles.html) data types and fields.
+var parsedSchema = schema.MustParse(`# Style Guide:
+# * DO NOT USE LOOSE TYPES like string, int, etc. instead define scalars for everything where possible
+#
+# TODO Add [feature flags/toggles](https://martinfowler.com/articles/feature-toggles.html) data types and fields.
 #      The schema should help manage what fields should be turned on/off per tenant, time, authorization, etc.
+# TODO Check to see where [union](https://graphql.org/learn/schema/#union-types) objects make more sense than
+#      interfaces and concrete types.
+# TODO Create common [fragments](https://graphql.org/learn/queries/#fragments) for queries to ease the client side burden 
+#      of typing in common fields and knowing all the various field names.
 
+scalar NameText
 scalar SmallText
 scalar MediumText
 scalar LargeText
 scalar ExtraLargeText
+
 scalar AsymmetricCryptoPublicKey
+scalar AsymmetricCryptoPublicKeyName
 scalar AuthenticatedSessionID
 scalar AuthenticatedSessionsCount
 scalar URLText
@@ -2776,6 +2786,9 @@ scalar SettingsBundleName
 
 scalar Document
 scalar File
+scalar FileNameOnly
+scalar FilePathAndName
+scalar DirectoryPath
 
 scalar Date
 scalar PastDate
@@ -2818,7 +2831,7 @@ interface AuthenticationIdentity {
 
 interface AuthorizationClaimCryptoKey {
   claimType : AuthorizationClaimType!
-  keyId : String!
+  keyId : AsymmetricCryptoPublicKeyName!
   key : AsymmetricCryptoPublicKey!
 }
 
@@ -2836,14 +2849,14 @@ interface AuthenticatedSession {
 
 interface Party {
   id: ID!
-  name: String!  
+  name: NameText!  
 }
 
 type Person implements Party {
   id: ID!
-  name: String!
-  firstName: String!
-  lastName: String!
+  name: NameText!
+  firstName: NameText!
+  lastName: NameText!
   users : [UserIdentity]
   services : [ServiceIdentity]
 }
@@ -2865,21 +2878,21 @@ type ServiceIdentity implements AuthenticationIdentity {
 
 type OrganizationalUnit implements Party {
   id: ID!
-  name: String!
+  name: NameText!
   units: [OrganizationalUnit]
   services : [ServiceIdentity]
 }
 
 type Organization implements Party {
   id: ID!
-  name: String!
+  name: NameText!
   units: [OrganizationalUnit]
   services : [ServiceIdentity]
 }
 
 type Tenant implements Party {
   id: ID!
-  name: String!
+  name: NameText!
   org: Organization!
 }
 
@@ -2889,7 +2902,7 @@ enum StorageType {
 }
 
 type FileStorageSettings {
-  basePath : String!
+  basePath : DirectoryPath!
 }
 
 type StorageSettings {
@@ -2926,16 +2939,16 @@ type HarvestedResource {
 
 type IgnoredResource {
   urls : HarvestedResourceUrls!
-  reason: String!
+  reason: SmallText!
 }
 
 type UnharvestedResource {
   url : URLText!
-  reason: String!
+  reason: SmallText!
 }
 
 type HarvestedResources {
-  text: String!
+  text: LargeText!
   harvested: [HarvestedResource]
   ignored : [IgnoredResource]
   invalid : [UnharvestedResource]
@@ -2964,11 +2977,11 @@ input StorageDestinationInput {
 }
 
 type Query {
-  asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
+  asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : AsymmetricCryptoPublicKeyName!) : AuthorizationClaimCryptoKey
   asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
   settingsBundles(authorization : PrivilegedAuthorizationInput!) : [SettingsBundle]
   settingsBundle(authorization : PrivilegedAuthorizationInput!, name : SettingsBundleName!): SettingsBundle
-  urlsInText(authorization : AuthorizationInput!, text: String!): HarvestedResources
+  urlsInText(authorization : AuthorizationInput!, text: LargeText!): HarvestedResources
 }
 
 type Mutation {
@@ -2976,6 +2989,6 @@ type Mutation {
   refreshSession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : AuthenticatedSession
   destroySession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : Boolean!
   destroyAllSessions(authorization : PrivilegedAuthorizationInput!) : AuthenticatedSessionsCount!
-  saveURLsinText(authorization : AuthorizationInput!, destination: StorageDestinationInput!, text : String!) : HarvestedResources
+  saveURLsinText(authorization : AuthorizationInput!, destination: StorageDestinationInput!, text : LargeText!) : HarvestedResources
 }
 `)

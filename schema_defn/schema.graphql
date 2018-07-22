@@ -1,11 +1,21 @@
+# Style Guide:
+# * DO NOT USE LOOSE TYPES like string, int, etc. instead define scalars for everything where possible
+#
 # TODO Add [feature flags/toggles](https://martinfowler.com/articles/feature-toggles.html) data types and fields.
 #      The schema should help manage what fields should be turned on/off per tenant, time, authorization, etc.
+# TODO Check to see where [union](https://graphql.org/learn/schema/#union-types) objects make more sense than
+#      interfaces and concrete types.
+# TODO Create common [fragments](https://graphql.org/learn/queries/#fragments) for queries to ease the client side burden 
+#      of typing in common fields and knowing all the various field names.
 
+scalar NameText
 scalar SmallText
 scalar MediumText
 scalar LargeText
 scalar ExtraLargeText
+
 scalar AsymmetricCryptoPublicKey
+scalar AsymmetricCryptoPublicKeyName
 scalar AuthenticatedSessionID
 scalar AuthenticatedSessionsCount
 scalar URLText
@@ -21,6 +31,9 @@ scalar SettingsBundleName
 
 scalar Document
 scalar File
+scalar FileNameOnly
+scalar FilePathAndName
+scalar DirectoryPath
 
 scalar Date
 scalar PastDate
@@ -63,7 +76,7 @@ interface AuthenticationIdentity {
 
 interface AuthorizationClaimCryptoKey {
   claimType : AuthorizationClaimType!
-  keyId : String!
+  keyId : AsymmetricCryptoPublicKeyName!
   key : AsymmetricCryptoPublicKey!
 }
 
@@ -81,14 +94,14 @@ interface AuthenticatedSession {
 
 interface Party {
   id: ID!
-  name: String!  
+  name: NameText!  
 }
 
 type Person implements Party {
   id: ID!
-  name: String!
-  firstName: String!
-  lastName: String!
+  name: NameText!
+  firstName: NameText!
+  lastName: NameText!
   users : [UserIdentity]
   services : [ServiceIdentity]
 }
@@ -110,21 +123,21 @@ type ServiceIdentity implements AuthenticationIdentity {
 
 type OrganizationalUnit implements Party {
   id: ID!
-  name: String!
+  name: NameText!
   units: [OrganizationalUnit]
   services : [ServiceIdentity]
 }
 
 type Organization implements Party {
   id: ID!
-  name: String!
+  name: NameText!
   units: [OrganizationalUnit]
   services : [ServiceIdentity]
 }
 
 type Tenant implements Party {
   id: ID!
-  name: String!
+  name: NameText!
   org: Organization!
 }
 
@@ -134,7 +147,7 @@ enum StorageType {
 }
 
 type FileStorageSettings {
-  basePath : String!
+  basePath : DirectoryPath!
 }
 
 type StorageSettings {
@@ -171,16 +184,16 @@ type HarvestedResource {
 
 type IgnoredResource {
   urls : HarvestedResourceUrls!
-  reason: String!
+  reason: SmallText!
 }
 
 type UnharvestedResource {
   url : URLText!
-  reason: String!
+  reason: SmallText!
 }
 
 type HarvestedResources {
-  text: String!
+  text: LargeText!
   harvested: [HarvestedResource]
   ignored : [IgnoredResource]
   invalid : [UnharvestedResource]
@@ -209,11 +222,11 @@ input StorageDestinationInput {
 }
 
 type Query {
-  asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : String!) : AuthorizationClaimCryptoKey
+  asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : AsymmetricCryptoPublicKeyName!) : AuthorizationClaimCryptoKey
   asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
   settingsBundles(authorization : PrivilegedAuthorizationInput!) : [SettingsBundle]
   settingsBundle(authorization : PrivilegedAuthorizationInput!, name : SettingsBundleName!): SettingsBundle
-  urlsInText(authorization : AuthorizationInput!, text: String!): HarvestedResources
+  urlsInText(authorization : AuthorizationInput!, text: LargeText!): HarvestedResources
 }
 
 type Mutation {
@@ -221,5 +234,5 @@ type Mutation {
   refreshSession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : AuthenticatedSession
   destroySession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : Boolean!
   destroyAllSessions(authorization : PrivilegedAuthorizationInput!) : AuthenticatedSessionsCount!
-  saveURLsinText(authorization : AuthorizationInput!, destination: StorageDestinationInput!, text : String!) : HarvestedResources
+  saveURLsinText(authorization : AuthorizationInput!, destination: StorageDestinationInput!, text : LargeText!) : HarvestedResources
 }

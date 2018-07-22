@@ -31,8 +31,8 @@ func NewDatastore(observatory observe.Observatory, config *schema.StorageSetting
 
 	span.LogFields(log.String("config.Type", string(schema.StorageTypeFileSystem)))
 	if config.Type == schema.StorageTypeFileSystem {
-		span.LogFields(log.String("config.Filesys.BasePath", config.Filesys.BasePath))
-		files, err := flatfs.CreateOrOpen(config.Filesys.BasePath, flatfs.IPFS_DEF_SHARD, true)
+		span.LogFields(log.String("config.Filesys.BasePath", string(config.Filesys.BasePath)))
+		files, err := flatfs.CreateOrOpen(string(config.Filesys.BasePath), flatfs.IPFS_DEF_SHARD, true)
 		if err == nil {
 			result.store = files
 		} else {

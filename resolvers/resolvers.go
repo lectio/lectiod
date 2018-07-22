@@ -84,7 +84,7 @@ func (sr *SchemaResolvers) ValidatePrivilegedAuthorization(ctx context.Context, 
 }
 
 // Query_asymmetricCryptoPublicKey returns the public key in JWTs 'kid' header
-func (sr *SchemaResolvers) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType schema.AuthorizationClaimType, keyId string) (schema.AuthorizationClaimCryptoKey, error) {
+func (sr *SchemaResolvers) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType schema.AuthorizationClaimType, keyId schema.AsymmetricCryptoPublicKeyName) (schema.AuthorizationClaimCryptoKey, error) {
 	return nil, errors.New("Not implemented yet")
 }
 
@@ -126,7 +126,7 @@ func (sr *SchemaResolvers) Query_settingsBundle(ctx context.Context, authorizati
 	return nil, nil
 }
 
-func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization schema.AuthorizationInput, text string) (*schema.HarvestedResources, error) {
+func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization schema.AuthorizationInput, text schema.LargeText) (*schema.HarvestedResources, error) {
 	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_urlsInText")
 	defer span.Finish()
 
@@ -144,9 +144,9 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization s
 	}
 
 	result := new(schema.HarvestedResources)
-	result.Text = text
+	result.Text = schema.LargeText(text)
 
-	r := conf.contentHarvester.HarvestResources(text, span)
+	r := conf.contentHarvester.HarvestResources(string(text), span)
 	for _, res := range r.Resources {
 		isURLValid, isDestValid := res.IsValid()
 		if !isURLValid {
@@ -156,9 +156,9 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization s
 		if !isDestValid {
 			isIgnored, ignoreReason := res.IsIgnored()
 			if isIgnored {
-				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: fmt.Sprintf("Invalid URL Destination: %s", ignoreReason)})
+				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: schema.SmallText(fmt.Sprintf("Invalid URL Destination: %v", ignoreReason))})
 			} else {
-				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: "Invalid URL Destination: unkown reason"})
+				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: schema.SmallText("Invalid URL Destination: unkown reason")})
 			}
 			continue
 		}
@@ -176,7 +176,7 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization s
 					Cleaned:  urlToString(cleanedURL),
 					Resolved: urlToString(resolvedURL),
 				},
-				Reason: fmt.Sprintf("Ignored: %s", ignoreReason),
+				Reason: schema.SmallText(fmt.Sprintf("Ignored: %s", ignoreReason)),
 			})
 			continue
 		}
@@ -213,7 +213,7 @@ func (sr *SchemaResolvers) Mutation_refreshSession(ctx context.Context, privileg
 	return nil, errors.New("Mutation refreshSession (for JWT refreshes) not implemented yet")
 }
 
-func (sr *SchemaResolvers) Mutation_saveURLsinText(ctx context.Context, authorization schema.AuthorizationInput, destination schema.StorageDestinationInput, text string) (*schema.HarvestedResources, error) {
+func (sr *SchemaResolvers) Mutation_saveURLsinText(ctx context.Context, authorization schema.AuthorizationInput, destination schema.StorageDestinationInput, text schema.LargeText) (*schema.HarvestedResources, error) {
 	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Mutation_saveURLsinText")
 	defer span.Finish()
 

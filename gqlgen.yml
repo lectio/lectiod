@@ -6,6 +6,8 @@ model:
 models:
   AsymmetricCryptoPublicKey:
     model: github.com/lectio/lectiod/schema_defn.AsymmetricCryptoPublicKey
+  AsymmetricCryptoPublicKeyName:
+    model: github.com/lectio/lectiod/schema_defn.AsymmetricCryptoPublicKeyName    
   AuthenticatedSession:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSession
   AuthenticatedSessionID:
@@ -14,6 +16,8 @@ models:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionTimeout
   AuthenticatedSessionsCount:
     model: github.com/lectio/lectiod/schema_defn.AuthenticatedSessionsCount
+  DirectoryPath:
+    model: github.com/lectio/lectiod/schema_defn.DirectoryPath
   Document:
     model: github.com/lectio/lectiod/schema_defn.Document
   ErrorMessage:
@@ -22,6 +26,10 @@ models:
     model: github.com/lectio/lectiod/schema_defn.ExtraLargeText
   File:
     model: github.com/lectio/lectiod/schema_defn.File
+  FileNameOnly:
+    model: github.com/lectio/lectiod/schema_defn.FileNameOnly
+  FilePathAndName:
+    model: github.com/lectio/lectiod/schema_defn.FilePathAndName
   IdentityKey:
     model: github.com/lectio/lectiod/schema_defn.IdentityKey
   IdentityPassword:
@@ -32,6 +40,8 @@ models:
     model: github.com/lectio/lectiod/schema_defn.LargeText
   MediumText:
     model: github.com/lectio/lectiod/schema_defn.MediumText
+  NameText:
+    model: github.com/lectio/lectiod/schema_defn.NameText
   RegularExpression:
     model: github.com/lectio/lectiod/schema_defn.RegularExpression
   SmallText:

@@ -16,7 +16,7 @@ type AuthorizationInput struct {
 	SessionID   *AuthenticatedSessionID  `json:"sessionID"`
 }
 type FileStorageSettings struct {
-	BasePath string `json:"basePath"`
+	BasePath DirectoryPath `json:"basePath"`
 }
 type HarvestDirectivesSettings struct {
 	IgnoreURLsRegExprs        []*RegularExpression `json:"ignoreURLsRegExprs"`
@@ -36,33 +36,33 @@ type HarvestedResourceUrls struct {
 	Resolved URLText `json:"resolved"`
 }
 type HarvestedResources struct {
-	Text      string                 `json:"text"`
+	Text      LargeText              `json:"text"`
 	Harvested []*HarvestedResource   `json:"harvested"`
 	Ignored   []*IgnoredResource     `json:"ignored"`
 	Invalid   []*UnharvestedResource `json:"invalid"`
 }
 type IgnoredResource struct {
 	Urls   HarvestedResourceUrls `json:"urls"`
-	Reason string                `json:"reason"`
+	Reason SmallText             `json:"reason"`
 }
 type Organization struct {
 	ID       string                `json:"id"`
-	Name     string                `json:"name"`
+	Name     NameText              `json:"name"`
 	Units    []*OrganizationalUnit `json:"units"`
 	Services []*ServiceIdentity    `json:"services"`
 }
 type OrganizationalUnit struct {
 	ID       string                `json:"id"`
-	Name     string                `json:"name"`
+	Name     NameText              `json:"name"`
 	Units    []*OrganizationalUnit `json:"units"`
 	Services []*ServiceIdentity    `json:"services"`
 }
 type Party interface{}
 type Person struct {
 	ID        string             `json:"id"`
-	Name      string             `json:"name"`
-	FirstName string             `json:"firstName"`
-	LastName  string             `json:"lastName"`
+	Name      NameText           `json:"name"`
+	FirstName NameText           `json:"firstName"`
+	LastName  NameText           `json:"lastName"`
 	Users     []*UserIdentity    `json:"users"`
 	Services  []*ServiceIdentity `json:"services"`
 }
@@ -93,12 +93,12 @@ type StorageSettings struct {
 }
 type Tenant struct {
 	ID   string       `json:"id"`
-	Name string       `json:"name"`
+	Name NameText     `json:"name"`
 	Org  Organization `json:"org"`
 }
 type UnharvestedResource struct {
-	Url    URLText `json:"url"`
-	Reason string  `json:"reason"`
+	Url    URLText   `json:"url"`
+	Reason SmallText `json:"reason"`
 }
 type UserIdentity struct {
 	ID        string             `json:"id"`

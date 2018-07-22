@@ -7,6 +7,7 @@
 #      interfaces and concrete types.
 # TODO Create common [fragments](https://graphql.org/learn/queries/#fragments) for queries to ease the client side burden 
 #      of typing in common fields and knowing all the various field names.
+# TODO Install schema linter and run for each build and before each git commit
 
 scalar NameText
 scalar SmallText

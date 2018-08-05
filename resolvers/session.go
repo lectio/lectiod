@@ -1,7 +1,7 @@
 package resolvers
 
 import (
-	schema "github.com/lectio/lectiod/schema_defn"
+	"github.com/lectio/lectiod/schema"
 )
 
 type simulatedSession struct {

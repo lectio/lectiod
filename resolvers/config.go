@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/lectio/lectiod/persistence"
-	schema "github.com/lectio/lectiod/schema_defn"
+	"github.com/lectio/lectiod/schema"
 	"github.com/spf13/viper"
 
 	"github.com/lectio/harvester"

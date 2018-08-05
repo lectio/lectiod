@@ -6,7 +6,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/ipfs/go-ds-flatfs"
-	schema "github.com/lectio/lectiod/schema_defn"
+	"github.com/lectio/lectiod/schema"
 	opentracing "github.com/opentracing/opentracing-go"
 	opentrext "github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"

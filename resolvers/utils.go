@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/lectio/harvester"
-	schema "github.com/lectio/lectiod/schema_defn"
+	"github.com/lectio/lectiod/schema"
 )
 
 func resourceToString(hr *harvester.HarvestedResource) schema.URLText {

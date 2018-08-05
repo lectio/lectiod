@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	schema "github.com/lectio/lectiod/schema_defn"
+	"github.com/lectio/lectiod/schema"
 	observe "github.com/shah/observe-go"
 
 	opentracing "github.com/opentracing/opentracing-go"
@@ -15,7 +15,7 @@ import (
 	// github.com/rcrowley/go-metrics
 )
 
-// SchemaResolvers is the overall GraphQL service handler
+// Resolver is the overall GraphQL service handler
 type Resolver struct {
 	configPath       ConfigPathProvider
 	defaultConfig    *Configuration

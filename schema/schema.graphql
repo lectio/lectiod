@@ -1,0 +1,240 @@
+# Style Guide:
+# * DO NOT USE LOOSE TYPES like string, int, etc. instead define scalars for everything where possible
+#
+# TODO Add [feature flags/toggles](https://martinfowler.com/articles/feature-toggles.html) data types and fields.
+#      The schema should help manage what fields should be turned on/off per tenant, time, authorization, etc.
+# TODO Check to see where [union](https://graphql.org/learn/schema/#union-types) objects make more sense than
+#      interfaces and concrete types.
+# TODO Create common [fragments](https://graphql.org/learn/queries/#fragments) for queries to ease the client side burden 
+#      of typing in common fields and knowing all the various field names.
+# TODO Install schema linter and run for each build and before each git commit
+
+scalar NameText
+scalar SmallText
+scalar MediumText
+scalar LargeText
+scalar ExtraLargeText
+
+scalar AsymmetricCryptoPublicKey
+scalar AsymmetricCryptoPublicKeyName
+scalar AuthenticatedSessionID
+scalar AuthenticatedSessionsCount
+scalar URLText
+scalar RegularExpression
+scalar ErrorMessage
+
+scalar IdentityPrincipal
+scalar IdentityPassword
+scalar IdentityKey
+
+scalar StorageKey
+scalar SettingsBundleName
+
+scalar Document
+scalar File
+scalar FileNameOnly
+scalar FilePathAndName
+scalar DirectoryPath
+
+scalar Date
+scalar PastDate
+scalar FutureDate
+scalar DateTime
+scalar PastDateTime
+scalar FutureDateTime
+scalar Timestamp
+
+scalar AuthenticatedSessionTimeout
+
+enum AuthorizationClaimType {
+  SESSION_ID
+  JWT
+}
+
+enum AuthorizationClaimMedium {
+  HTTP_HEADER
+  PARAM_VALUE  
+}
+
+enum AuthenticationType {
+  SINGLE_FACTOR
+}
+
+enum AuthenticatedSessionType {
+  EPHEMERAL
+}
+
+enum AuthenticatedSessionTmeoutType {
+  SLIDING_WINDOW
+  ABSOLUTE
+}
+
+interface AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+}
+
+interface AuthorizationClaimCryptoKey {
+  claimType : AuthorizationClaimType!
+  keyId : AsymmetricCryptoPublicKeyName!
+  key : AsymmetricCryptoPublicKey!
+}
+
+interface AuthenticatedSession {
+  claimType : AuthorizationClaimType!
+  claimMedium : AuthorizationClaimMedium!
+  claimKey : AuthorizationClaimCryptoKey
+  sessionID: AuthenticatedSessionID!
+  type: AuthenticatedSessionType!
+  identity: AuthenticationIdentity!
+  timeOutType : AuthenticatedSessionTmeoutType!
+  timeOut: AuthenticatedSessionTimeout!
+  settingsBundleName : SettingsBundleName
+}
+
+interface Party {
+  id: ID!
+  name: NameText!  
+}
+
+type Person implements Party {
+  id: ID!
+  name: NameText!
+  firstName: NameText!
+  lastName: NameText!
+  users : [UserIdentity]
+  services : [ServiceIdentity]
+}
+
+type UserIdentity implements AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+  password : IdentityPassword!
+  person: Person!
+}
+
+type ServiceIdentity implements AuthenticationIdentity {
+  id: ID!
+  type: AuthenticationType!
+  principal: IdentityPrincipal!
+  key : IdentityKey!
+}
+
+type OrganizationalUnit implements Party {
+  id: ID!
+  name: NameText!
+  units: [OrganizationalUnit]
+  services : [ServiceIdentity]
+}
+
+type Organization implements Party {
+  id: ID!
+  name: NameText!
+  units: [OrganizationalUnit]
+  services : [ServiceIdentity]
+}
+
+type Tenant implements Party {
+  id: ID!
+  name: NameText!
+  org: Organization!
+  #TODO add support for subtenants (in case our tenants want their own customers)
+}
+
+# StorageType enumerates the different kinds of storage Lectio supports
+enum StorageType {
+  FILE_SYSTEM
+}
+
+type FileStorageSettings {
+  basePath : DirectoryPath!
+}
+
+type StorageSettings {
+  type: StorageType!
+  filesys : FileStorageSettings
+}
+
+type HarvestDirectivesSettings {
+  ignoreURLsRegExprs : [RegularExpression]
+  removeParamsFromURLsRegEx : [RegularExpression]
+  followHTMLRedirects : Boolean!
+}
+
+type SettingsBundle {
+  name : SettingsBundleName!
+  storage: StorageSettings!
+  harvest : HarvestDirectivesSettings!
+  errors: [ErrorMessage]
+}
+
+type HarvestedResourceUrls {
+  original : URLText!
+  final : URLText!
+  cleaned : URLText!
+  resolved : URLText!
+}
+
+type HarvestedResource {
+  urls : HarvestedResourceUrls!
+  isHTMLRedirect : Boolean!
+  isCleaned : Boolean!
+  redirectURL : URLText
+}
+
+type IgnoredResource {
+  urls : HarvestedResourceUrls!
+  reason: SmallText!
+}
+
+type UnharvestedResource {
+  url : URLText!
+  reason: SmallText!
+}
+
+type HarvestedResources {
+  text: LargeText!
+  harvested: [HarvestedResource]
+  ignored : [IgnoredResource]
+  invalid : [UnharvestedResource]
+}
+
+input AuthorizationInput {
+  claimType : AuthorizationClaimType!
+  claimMedium : AuthorizationClaimMedium!
+  sessionID: AuthenticatedSessionID
+}
+
+input PrivilegedAuthorizationInput {
+  claimType : AuthorizationClaimType!
+  claimMedium : AuthorizationClaimMedium!
+  sessionID: AuthenticatedSessionID
+}
+
+enum StorageDestinationCollection {
+  SESSION_PRINCIPAL
+  SESSION_TENANT
+}
+
+input StorageDestinationInput {
+  collection : StorageDestinationCollection!
+  key: StorageKey!
+}
+
+type Query {
+  asymmetricCryptoPublicKey(claimType : AuthorizationClaimType!, keyId : AsymmetricCryptoPublicKeyName!) : AuthorizationClaimCryptoKey
+  asymmetricCryptoPublicKeys(claimType : AuthorizationClaimType) : [AuthorizationClaimCryptoKey]
+  settingsBundles(authorization : PrivilegedAuthorizationInput!) : [SettingsBundle]
+  settingsBundle(authorization : PrivilegedAuthorizationInput!, name : SettingsBundleName!): SettingsBundle
+  urlsInText(authorization : AuthorizationInput!, text: LargeText!): HarvestedResources
+}
+
+type Mutation {
+  establishSimulatedSession(authorization : PrivilegedAuthorizationInput!, settings : SettingsBundleName = "DEFAULT") : AuthenticatedSession
+  refreshSession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : AuthenticatedSession
+  destroySession(privilegedAuthz : PrivilegedAuthorizationInput!, authorization : AuthorizationInput!) : Boolean!
+  destroyAllSessions(authorization : PrivilegedAuthorizationInput!) : AuthenticatedSessionsCount!
+  saveURLsinText(authorization : AuthorizationInput!, destination: StorageDestinationInput!, text : LargeText!) : HarvestedResources
+}

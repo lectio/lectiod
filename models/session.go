@@ -1,4 +1,4 @@
-package schema
+package models
 
 type AuthenticatedSession interface {
 	GetAuthenticatedSessionID() AuthenticatedSessionID

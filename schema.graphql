@@ -2,12 +2,12 @@
 # * DO NOT USE LOOSE TYPES like string, int, etc. instead define scalars for everything where possible
 #
 # TODO Add [feature flags/toggles](https://martinfowler.com/articles/feature-toggles.html) data types and fields.
-#      The schema should help manage what fields should be turned on/off per tenant, time, authorization, etc.
-# TODO Check to see where [union](https://graphql.org/learn/schema/#union-types) objects make more sense than
+#      The models should help manage what fields should be turned on/off per tenant, time, authorization, etc.
+# TODO Check to see where [union](https://graphql.org/learn/models/#union-types) objects make more sense than
 #      interfaces and concrete types.
 # TODO Create common [fragments](https://graphql.org/learn/queries/#fragments) for queries to ease the client side burden 
 #      of typing in common fields and knowing all the various field names.
-# TODO Install schema linter and run for each build and before each git commit
+# TODO Install models linter and run for each build and before each git commit
 
 scalar NameText
 scalar SmallText

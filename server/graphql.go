@@ -8,7 +8,6 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/lectio/lectiod/resolvers"
-	"github.com/lectio/lectiod/schema"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	otlog "github.com/opentracing/opentracing-go/log"
@@ -68,12 +67,12 @@ func createExecutableSchemaHandler(o observe.Observatory, provider resolvers.Con
 	span := o.StartChildTrace("graphql.createExecutableSchemaHandler", parent)
 	defer span.Finish()
 
-	var cfg schema.Config
+	var cfg resolvers.Config
 	cfg.Resolvers = resolvers.NewSchemaResolvers(o, provider, span)
 
 	// TODO Add error presenter and panic handlers: https://gqlgen.com/reference/errors/
 
-	return handler.GraphQL(schema.NewExecutableSchema(cfg),
+	return handler.GraphQL(resolvers.NewExecutableSchema(cfg),
 		handler.ResolverMiddleware(createGraphQLObservableResolverMiddleware(o)),
 		handler.RequestMiddleware(createGraphQLObservableRequestMiddleware(o)))
 }

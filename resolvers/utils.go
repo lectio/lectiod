@@ -4,10 +4,10 @@ import (
 	"net/url"
 
 	"github.com/lectio/harvester"
-	"github.com/lectio/lectiod/schema"
+	"github.com/lectio/lectiod/models"
 )
 
-func resourceToString(hr *harvester.HarvestedResource) schema.URLText {
+func resourceToString(hr *harvester.HarvestedResource) models.URLText {
 	if hr == nil {
 		return ""
 	}
@@ -16,9 +16,9 @@ func resourceToString(hr *harvester.HarvestedResource) schema.URLText {
 	return urlToString(referrerURL)
 }
 
-func urlToString(url *url.URL) schema.URLText {
+func urlToString(url *url.URL) models.URLText {
 	if url == nil {
 		return ""
 	}
-	return schema.URLText(url.String())
+	return models.URLText(url.String())
 }

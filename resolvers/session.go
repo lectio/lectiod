@@ -1,31 +1,31 @@
 package resolvers
 
 import (
-	"github.com/lectio/lectiod/schema"
+	"github.com/lectio/lectiod/models"
 )
 
 type simulatedSession struct {
-	claimType    schema.AuthorizationClaimType
-	claimMedium  schema.AuthorizationClaimMedium
-	sessionID    schema.AuthenticatedSessionID
-	sessionType  schema.AuthenticatedSessionType
-	identity     schema.AuthenticationIdentity
-	timeOutType  schema.AuthenticatedSessionTmeoutType
-	timeOut      schema.AuthenticatedSessionTimeout
-	settingsName schema.SettingsBundleName
+	claimType    models.AuthorizationClaimType
+	claimMedium  models.AuthorizationClaimMedium
+	sessionID    models.AuthenticatedSessionID
+	sessionType  models.AuthenticatedSessionType
+	identity     models.AuthenticationIdentity
+	timeOutType  models.AuthenticatedSessionTmeoutType
+	timeOut      models.AuthenticatedSessionTimeout
+	settingsName models.SettingsBundleName
 }
 
-func NewSimulatedSession(settingsName schema.SettingsBundleName) schema.AuthenticatedSession {
+func NewSimulatedSession(settingsName models.SettingsBundleName) models.AuthenticatedSession {
 	result := simulatedSession{}
-	result.sessionID = schema.AuthenticatedSessionID("SIMULATED")
+	result.sessionID = models.AuthenticatedSessionID("SIMULATED")
 	result.settingsName = settingsName
 	return &result
 }
 
-func (s simulatedSession) GetAuthenticatedSessionID() schema.AuthenticatedSessionID {
+func (s simulatedSession) GetAuthenticatedSessionID() models.AuthenticatedSessionID {
 	return s.sessionID
 }
 
-func (s simulatedSession) GetSettingsBundleName() schema.SettingsBundleName {
+func (s simulatedSession) GetSettingsBundleName() models.SettingsBundleName {
 	return s.settingsName
 }

@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/lectio/lectiod/models"
 	"github.com/lectio/lectiod/persistence"
-	"github.com/lectio/lectiod/schema"
 	"github.com/spf13/viper"
 
 	"github.com/lectio/harvester"
@@ -18,21 +18,21 @@ import (
 	// github.com/rcrowley/go-metrics
 )
 
-type ConfigurationsMap map[schema.SettingsBundleName]*Configuration
-type AuthenticatedSessionsMap map[schema.AuthenticatedSessionID]schema.AuthenticatedSession
+type ConfigurationsMap map[models.SettingsBundleName]*Configuration
+type AuthenticatedSessionsMap map[models.AuthenticatedSessionID]models.AuthenticatedSession
 
 const (
-	DefaultSettingsBundleName schema.SettingsBundleName = "DEFAULT"
+	DefaultSettingsBundleName models.SettingsBundleName = "DEFAULT"
 )
 
 type ignoreURLsRegExList []*regexp.Regexp
 type cleanURLsRegExList []*regexp.Regexp
 
-func (l *ignoreURLsRegExList) Add(settings *schema.SettingsBundle, value schema.RegularExpression) {
+func (l *ignoreURLsRegExList) Add(settings *models.SettingsBundle, value models.RegularExpression) {
 	if value != "" {
 		re, error := regexp.Compile(string(value))
 		if error != nil {
-			message := schema.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
+			message := models.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
 			settings.Errors = append(settings.Errors, &message)
 			return
 		}
@@ -40,7 +40,7 @@ func (l *ignoreURLsRegExList) Add(settings *schema.SettingsBundle, value schema.
 	}
 }
 
-func (l *ignoreURLsRegExList) AddSeveral(settings *schema.SettingsBundle, values []*schema.RegularExpression) {
+func (l *ignoreURLsRegExList) AddSeveral(settings *models.SettingsBundle, values []*models.RegularExpression) {
 	for _, value := range values {
 		l.Add(settings, *value)
 	}
@@ -56,11 +56,11 @@ func (l ignoreURLsRegExList) IgnoreDiscoveredResource(url *url.URL) (bool, strin
 	return false, ""
 }
 
-func (l *cleanURLsRegExList) Add(settings *schema.SettingsBundle, value schema.RegularExpression) {
+func (l *cleanURLsRegExList) Add(settings *models.SettingsBundle, value models.RegularExpression) {
 	if value != "" {
 		re, error := regexp.Compile(string(value))
 		if error != nil {
-			message := schema.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
+			message := models.ErrorMessage(fmt.Sprintf(`Error adding regexp '%s' to ignore list: %s`, value, error.Error()))
 			settings.Errors = append(settings.Errors, &message)
 			return
 		}
@@ -68,7 +68,7 @@ func (l *cleanURLsRegExList) Add(settings *schema.SettingsBundle, value schema.R
 	}
 }
 
-func (l *cleanURLsRegExList) AddSeveral(settings *schema.SettingsBundle, values []*schema.RegularExpression) {
+func (l *cleanURLsRegExList) AddSeveral(settings *models.SettingsBundle, values []*models.RegularExpression) {
 	for _, value := range values {
 		l.Add(settings, *value)
 	}
@@ -89,34 +89,34 @@ func (l cleanURLsRegExList) RemoveQueryParamFromResource(paramName string) (bool
 }
 
 type Configuration struct {
-	settings                  *schema.SettingsBundle
+	settings                  *models.SettingsBundle
 	store                     *persistence.Datastore
 	contentHarvester          *harvester.ContentHarvester
 	ignoreURLsRegEx           ignoreURLsRegExList
 	removeParamsFromURLsRegEx cleanURLsRegExList
 }
 
-func createDefaultSettings(name schema.SettingsBundleName) *schema.SettingsBundle {
-	result := new(schema.SettingsBundle)
+func createDefaultSettings(name models.SettingsBundleName) *models.SettingsBundle {
+	result := new(models.SettingsBundle)
 	result.Name = name
 
-	twitterStatusRegExpr := schema.RegularExpression(`^https://twitter.com/(.*?)/status/(.*)$`)
-	twitterCommonErrorURLRegExpr := schema.RegularExpression(`https://t.co`)
-	utmRegExpr := schema.RegularExpression(`^utm_`)
+	twitterStatusRegExpr := models.RegularExpression(`^https://twitter.com/(.*?)/status/(.*)$`)
+	twitterCommonErrorURLRegExpr := models.RegularExpression(`https://t.co`)
+	utmRegExpr := models.RegularExpression(`^utm_`)
 
-	result.Harvest.IgnoreURLsRegExprs = []*schema.RegularExpression{&twitterStatusRegExpr, &twitterCommonErrorURLRegExpr}
-	result.Harvest.RemoveParamsFromURLsRegEx = []*schema.RegularExpression{&utmRegExpr}
+	result.Harvest.IgnoreURLsRegExprs = []*models.RegularExpression{&twitterStatusRegExpr, &twitterCommonErrorURLRegExpr}
+	result.Harvest.RemoveParamsFromURLsRegEx = []*models.RegularExpression{&utmRegExpr}
 	result.Harvest.FollowHTMLRedirects = true
 
-	result.Storage.Type = schema.StorageTypeFileSystem
-	result.Storage.Filesys = new(schema.FileStorageSettings)
+	result.Storage.Type = models.StorageTypeFileSystem
+	result.Storage.Filesys = new(models.FileStorageSettings)
 	result.Storage.Filesys.BasePath = "./tmp/diskv_data"
 
 	return result
 }
 
-func NewViperConfiguration(r *Resolver, provider ConfigPathProvider, configName schema.SettingsBundleName, parent opentracing.Span) *Configuration {
-	span := r.observatory.StartChildTrace("resolvers.NewViperConfiguration", parent)
+func NewViperConfiguration(h *ServiceHandler, provider ConfigPathProvider, configName models.SettingsBundleName, parent opentracing.Span) *Configuration {
+	span := h.observatory.StartChildTrace("resolvers.NewViperConfiguration", parent)
 	defer span.Finish()
 
 	result := new(Configuration)
@@ -144,14 +144,14 @@ func NewViperConfiguration(r *Resolver, provider ConfigPathProvider, configName 
 		}
 	}
 
-	result.ConfigureContentHarvester(r, parent)
+	result.ConfigureContentHarvester(h, parent)
 	return result
 }
 
-func NewDefaultConfiguration(r *Resolver, name schema.SettingsBundleName, parent opentracing.Span) *Configuration {
+func NewDefaultConfiguration(h *ServiceHandler, name models.SettingsBundleName, parent opentracing.Span) *Configuration {
 	result := new(Configuration)
 	result.settings = createDefaultSettings(name)
-	result.ConfigureContentHarvester(r, parent)
+	result.ConfigureContentHarvester(h, parent)
 	return result
 }
 
@@ -159,7 +159,7 @@ func (c *Configuration) Close() {
 	c.store.Close()
 }
 
-func (c *Configuration) Settings() *schema.SettingsBundle {
+func (c *Configuration) Settings() *models.SettingsBundle {
 	return c.settings
 }
 
@@ -168,12 +168,12 @@ func (c *Configuration) Store() *persistence.Datastore {
 }
 
 // ConfigureContentHarvester uses the config parameters in Configuration().Harvest to setup the content harvester
-func (c *Configuration) ConfigureContentHarvester(r *Resolver, parent opentracing.Span) {
-	span := r.observatory.StartChildTrace("resolvers.ConfigureContentHarvester", parent)
+func (c *Configuration) ConfigureContentHarvester(h *ServiceHandler, parent opentracing.Span) {
+	span := h.observatory.StartChildTrace("resolvers.ConfigureContentHarvester", parent)
 	defer span.Finish()
 
-	c.store = persistence.NewDatastore(r.observatory, &c.settings.Storage, span)
+	c.store = persistence.NewDatastore(h.observatory, &c.settings.Storage, span)
 	c.ignoreURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.IgnoreURLsRegExprs)
 	c.removeParamsFromURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.RemoveParamsFromURLsRegEx)
-	c.contentHarvester = harvester.MakeContentHarvester(r.observatory, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)
+	c.contentHarvester = harvester.MakeContentHarvester(h.observatory, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)
 }

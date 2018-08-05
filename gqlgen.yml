@@ -1,69 +1,71 @@
-schema: schema/schema.graphql
+schema: schema.graphql
 exec:
-  filename: schema/resolvers_interface_generated.go
+  filename: resolvers/generated.go
+  package: resolvers
 model:
-  filename: schema/models_concrete_generated.go
+  filename: models/generated.go
+  package: models
 models:
   AsymmetricCryptoPublicKey:
-    model: github.com/lectio/lectiod/schema.AsymmetricCryptoPublicKey
+    model: github.com/lectio/lectiod/models.AsymmetricCryptoPublicKey
   AsymmetricCryptoPublicKeyName:
-    model: github.com/lectio/lectiod/schema.AsymmetricCryptoPublicKeyName    
+    model: github.com/lectio/lectiod/models.AsymmetricCryptoPublicKeyName    
   AuthenticatedSession:
-    model: github.com/lectio/lectiod/schema.AuthenticatedSession
+    model: github.com/lectio/lectiod/models.AuthenticatedSession
   AuthenticatedSessionID:
-    model: github.com/lectio/lectiod/schema.AuthenticatedSessionID
+    model: github.com/lectio/lectiod/models.AuthenticatedSessionID
   AuthenticatedSessionTimeout:
-    model: github.com/lectio/lectiod/schema.AuthenticatedSessionTimeout
+    model: github.com/lectio/lectiod/models.AuthenticatedSessionTimeout
   AuthenticatedSessionsCount:
-    model: github.com/lectio/lectiod/schema.AuthenticatedSessionsCount
+    model: github.com/lectio/lectiod/models.AuthenticatedSessionsCount
   DirectoryPath:
-    model: github.com/lectio/lectiod/schema.DirectoryPath
+    model: github.com/lectio/lectiod/models.DirectoryPath
   Document:
-    model: github.com/lectio/lectiod/schema.Document
+    model: github.com/lectio/lectiod/models.Document
   ErrorMessage:
-    model: github.com/lectio/lectiod/schema.ErrorMessage
+    model: github.com/lectio/lectiod/models.ErrorMessage
   ExtraLargeText:
-    model: github.com/lectio/lectiod/schema.ExtraLargeText
+    model: github.com/lectio/lectiod/models.ExtraLargeText
   File:
-    model: github.com/lectio/lectiod/schema.File
+    model: github.com/lectio/lectiod/models.File
   FileNameOnly:
-    model: github.com/lectio/lectiod/schema.FileNameOnly
+    model: github.com/lectio/lectiod/models.FileNameOnly
   FilePathAndName:
-    model: github.com/lectio/lectiod/schema.FilePathAndName
+    model: github.com/lectio/lectiod/models.FilePathAndName
   IdentityKey:
-    model: github.com/lectio/lectiod/schema.IdentityKey
+    model: github.com/lectio/lectiod/models.IdentityKey
   IdentityPassword:
-    model: github.com/lectio/lectiod/schema.IdentityPassword
+    model: github.com/lectio/lectiod/models.IdentityPassword
   IdentityPrincipal:
-    model: github.com/lectio/lectiod/schema.IdentityPrincipal
+    model: github.com/lectio/lectiod/models.IdentityPrincipal
   LargeText:
-    model: github.com/lectio/lectiod/schema.LargeText
+    model: github.com/lectio/lectiod/models.LargeText
   MediumText:
-    model: github.com/lectio/lectiod/schema.MediumText
+    model: github.com/lectio/lectiod/models.MediumText
   NameText:
-    model: github.com/lectio/lectiod/schema.NameText
+    model: github.com/lectio/lectiod/models.NameText
   RegularExpression:
-    model: github.com/lectio/lectiod/schema.RegularExpression
+    model: github.com/lectio/lectiod/models.RegularExpression
   SmallText:
-    model: github.com/lectio/lectiod/schema.SmallText
+    model: github.com/lectio/lectiod/models.SmallText
   SettingsBundleName:
-    model: github.com/lectio/lectiod/schema.SettingsBundleName
+    model: github.com/lectio/lectiod/models.SettingsBundleName
   StorageKey: 
-    model: github.com/lectio/lectiod/schema.StorageKey
+    model: github.com/lectio/lectiod/models.StorageKey
   URLText:
-    model: github.com/lectio/lectiod/schema.URLText 
+    model: github.com/lectio/lectiod/models.URLText 
   Date:
-    model: github.com/lectio/lectiod/schema.Date
+    model: github.com/lectio/lectiod/models.Date
   PastDate:
-    model: github.com/lectio/lectiod/schema.PastDate
+    model: github.com/lectio/lectiod/models.PastDate
   FutureDate:
-    model: github.com/lectio/lectiod/schema.FutureDate
+    model: github.com/lectio/lectiod/models.FutureDate
   DateTime:
-    model: github.com/lectio/lectiod/schema.DateTime
+    model: github.com/lectio/lectiod/models.DateTime
   PastDateTime:
-    model: github.com/lectio/lectiod/schema.PastDateTime
+    model: github.com/lectio/lectiod/models.PastDateTime
   FutureDateTime:
-    model: github.com/lectio/lectiod/schema.FutureDateTime
+    model: github.com/lectio/lectiod/models.FutureDateTime
   Timestamp:
-    model: github.com/lectio/lectiod/schema.Timestamp
+    model: github.com/lectio/lectiod/models.Timestamp
 

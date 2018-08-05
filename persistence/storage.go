@@ -6,7 +6,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/ipfs/go-ds-flatfs"
-	"github.com/lectio/lectiod/schema"
+	"github.com/lectio/lectiod/models"
 	opentracing "github.com/opentracing/opentracing-go"
 	opentrext "github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
@@ -14,14 +14,14 @@ import (
 )
 
 type Datastore struct {
-	config      *schema.StorageSettings
+	config      *models.StorageSettings
 	store       datastore.Datastore
 	storeError  error
 	observatory observe.Observatory
 }
 
 // NewDatastore constructs a Datastore
-func NewDatastore(observatory observe.Observatory, config *schema.StorageSettings, parent opentracing.Span) *Datastore {
+func NewDatastore(observatory observe.Observatory, config *models.StorageSettings, parent opentracing.Span) *Datastore {
 	span := observatory.StartChildTrace("persistence.NewDatastore", parent)
 	defer span.Finish()
 
@@ -29,8 +29,8 @@ func NewDatastore(observatory observe.Observatory, config *schema.StorageSetting
 	result.config = config
 	result.observatory = observatory
 
-	span.LogFields(log.String("config.Type", string(schema.StorageTypeFileSystem)))
-	if config.Type == schema.StorageTypeFileSystem {
+	span.LogFields(log.String("config.Type", string(models.StorageTypeFileSystem)))
+	if config.Type == models.StorageTypeFileSystem {
 		span.LogFields(log.String("config.Filesys.BasePath", string(config.Filesys.BasePath)))
 		files, err := flatfs.CreateOrOpen(string(config.Filesys.BasePath), flatfs.IPFS_DEF_SHARD, true)
 		if err == nil {

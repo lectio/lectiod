@@ -26,6 +26,18 @@
 
 
 [[constraint]]
+  name = "github.com/99designs/gqlgen"
+  version = "0.4.1"
+
+[[constraint]]
+  name = "github.com/ipfs/go-datastore"
+  version = "2.4.1"
+
+[[constraint]]
+  name = "github.com/ipfs/go-ds-flatfs"
+  version = "1.2.6"
+
+[[constraint]]
   branch = "master"
   name = "github.com/lectio/harvester"
 
@@ -46,19 +58,13 @@
   version = "1.2.2"
 
 [[constraint]]
-  name = "github.com/vektah/gqlgen"
-  version = "0.3.0"
+  branch = "master"
+  name = "github.com/vektah/gqlparser"
 
 [prune]
   go-tests = true
   unused-packages = true
 
-  [[prune.project]]
-    # don't remove unused packages because gqlgen/main.go is needed for generator
-    name = "github.com/vektah/gqlgen"
-    unused-packages = false
-
-[[override]]
-  # need this temporarily because github.com/ipfs/go-datastore key.go is broken (see README.md)
+[[constraint]]
   name = "github.com/google/uuid"
   version = "0.2.0"

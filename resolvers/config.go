@@ -115,8 +115,8 @@ func createDefaultSettings(name schema.SettingsBundleName) *schema.SettingsBundl
 	return result
 }
 
-func NewViperConfiguration(sr *SchemaResolvers, provider ConfigPathProvider, configName schema.SettingsBundleName, parent opentracing.Span) *Configuration {
-	span := sr.observatory.StartChildTrace("resolvers.NewViperConfiguration", parent)
+func NewViperConfiguration(r *Resolver, provider ConfigPathProvider, configName schema.SettingsBundleName, parent opentracing.Span) *Configuration {
+	span := r.observatory.StartChildTrace("resolvers.NewViperConfiguration", parent)
 	defer span.Finish()
 
 	result := new(Configuration)
@@ -144,14 +144,14 @@ func NewViperConfiguration(sr *SchemaResolvers, provider ConfigPathProvider, con
 		}
 	}
 
-	result.ConfigureContentHarvester(sr, parent)
+	result.ConfigureContentHarvester(r, parent)
 	return result
 }
 
-func NewDefaultConfiguration(sr *SchemaResolvers, name schema.SettingsBundleName, parent opentracing.Span) *Configuration {
+func NewDefaultConfiguration(r *Resolver, name schema.SettingsBundleName, parent opentracing.Span) *Configuration {
 	result := new(Configuration)
 	result.settings = createDefaultSettings(name)
-	result.ConfigureContentHarvester(sr, parent)
+	result.ConfigureContentHarvester(r, parent)
 	return result
 }
 
@@ -168,12 +168,12 @@ func (c *Configuration) Store() *persistence.Datastore {
 }
 
 // ConfigureContentHarvester uses the config parameters in Configuration().Harvest to setup the content harvester
-func (c *Configuration) ConfigureContentHarvester(sr *SchemaResolvers, parent opentracing.Span) {
-	span := sr.observatory.StartChildTrace("resolvers.ConfigureContentHarvester", parent)
+func (c *Configuration) ConfigureContentHarvester(r *Resolver, parent opentracing.Span) {
+	span := r.observatory.StartChildTrace("resolvers.ConfigureContentHarvester", parent)
 	defer span.Finish()
 
-	c.store = persistence.NewDatastore(sr.observatory, &c.settings.Storage, span)
+	c.store = persistence.NewDatastore(r.observatory, &c.settings.Storage, span)
 	c.ignoreURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.IgnoreURLsRegExprs)
 	c.removeParamsFromURLsRegEx.AddSeveral(c.settings, c.settings.Harvest.RemoveParamsFromURLsRegEx)
-	c.contentHarvester = harvester.MakeContentHarvester(sr.observatory, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)
+	c.contentHarvester = harvester.MakeContentHarvester(r.observatory, c.ignoreURLsRegEx, c.removeParamsFromURLsRegEx, c.settings.Harvest.FollowHTMLRedirects)
 }

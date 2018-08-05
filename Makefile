@@ -1,8 +1,9 @@
 SHELL := /bin/bash
 MAKEFLAGS := --silent
 GO_VERSION := $(shell go version | cut -d' ' -f3 | cut -d. -f2)
+GQLGEN_INSTALLED := $(shell command -v gqlgen 2> /dev/null)
 
-## TODO Check out https://github.com/genuinetools/img/blob/master/Makefile to borrow some targets
+# TODO Check out https://github.com/genuinetools/img/blob/master/Makefile to borrow some targets
 
 ## Default is to run this in development mode for testing the website
 default: run
@@ -14,14 +15,35 @@ setup-devl: pull dep
 pull: 
 	git pull
 
+## Remove vendor'd libraries and all other generated artifacts
+clean:
+	rm -f Gopkg.lock Gopkg.toml
+	rm -rf vendor
+
+## See if 99designs' gqlgen  is installed
+check-gqlgen-installed:
+ifndef GQLGEN_INSTALLED
+	echo "gqlgen command is not available, installing it now using 'go get github.com/99designs/gqlgen'"
+	go get github.com/99designs/gqlgen
+endif
+
+## Check all development dependencies
+check-devl-dependencies: check-gqlgen-installed
+
+## Initialize the development environment
+init-devl: check-devl-dependencies
+	dep init
+
 ## Update all dependencies -- we've removed "[prune] unused-packages = true" from Gopkg.toml
 dep:
 	dep ensure
 	dep ensure -update
 
 ## Generate the GraphQL models and resolvers in graph subpackage, using gqlgen.yml as spec
-generate-graphql:
-	go run vendor/github.com/vektah/gqlgen/main.go
+generate-graphql: check-gqlgen-installed
+ifdef GQLGEN_INSTALLED
+	gqlgen
+endif
 
 ## Generate all code (such as the GraphQL subpackage)
 generate-all: generate-graphql

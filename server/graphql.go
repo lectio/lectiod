@@ -5,17 +5,17 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/handler"
 	"github.com/lectio/lectiod/resolvers"
 	schema "github.com/lectio/lectiod/schema_defn"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	otlog "github.com/opentracing/opentracing-go/log"
 	observe "github.com/shah/observe-go"
-	"github.com/vektah/gqlgen/graphql"
-	"github.com/vektah/gqlgen/handler"
 )
 
-func createGraphQLObservableResolverMiddleware(o observe.Observatory) graphql.ResolverMiddleware {
+func createGraphQLObservableResolverMiddleware(o observe.Observatory) graphql.FieldMiddleware {
 	return func(ctx context.Context, next graphql.Resolver) (interface{}, error) {
 		rctx := graphql.GetResolverContext(ctx)
 		span, ctx := o.StartTraceFromContext(ctx, rctx.Object+" Handler Middleware",
@@ -68,11 +68,12 @@ func createExecutableSchemaHandler(o observe.Observatory, provider resolvers.Con
 	span := o.StartChildTrace("graphql.createExecutableSchemaHandler", parent)
 	defer span.Finish()
 
-	resolvers := resolvers.NewSchemaResolvers(o, provider, span)
+	var cfg schema.Config
+	cfg.Resolvers = resolvers.NewSchemaResolvers(o, provider, span)
 
 	// TODO Add error presenter and panic handlers: https://gqlgen.com/reference/errors/
 
-	return handler.GraphQL(schema.MakeExecutableSchema(resolvers),
+	return handler.GraphQL(schema.NewExecutableSchema(cfg),
 		handler.ResolverMiddleware(createGraphQLObservableResolverMiddleware(o)),
 		handler.RequestMiddleware(createGraphQLObservableRequestMiddleware(o)))
 }

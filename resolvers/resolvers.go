@@ -16,17 +16,25 @@ import (
 )
 
 // SchemaResolvers is the overall GraphQL service handler
-type SchemaResolvers struct {
+type Resolver struct {
 	configPath       ConfigPathProvider
 	defaultConfig    *Configuration
 	configs          ConfigurationsMap
 	sessions         AuthenticatedSessionsMap
 	observatory      observe.Observatory
 	simulatedSession schema.AuthenticatedSession
+	mutators         *mutation
+	queries          *query
+}
+type mutation struct {
+	resolver *Resolver
+}
+type query struct {
+	resolver *Resolver
 }
 
-func (sr *SchemaResolvers) Close() {
-	for _, config := range sr.configs {
+func (r *Resolver) Close() {
+	for _, config := range r.configs {
 		config.Close()
 	}
 }
@@ -34,11 +42,11 @@ func (sr *SchemaResolvers) Close() {
 type ConfigPathProvider func(configName string) []string
 
 // NewSchemaResolvers creates the GraphQL driver
-func NewSchemaResolvers(observatory observe.Observatory, configPath ConfigPathProvider, parent opentracing.Span) *SchemaResolvers {
+func NewSchemaResolvers(observatory observe.Observatory, configPath ConfigPathProvider, parent opentracing.Span) *Resolver {
 	span := observatory.StartChildTrace("resolvers.NewSchemaResolvers", parent)
 	defer span.Finish()
 
-	result := new(SchemaResolvers)
+	result := new(Resolver)
 	result.observatory = observatory
 	result.configPath = configPath
 	result.defaultConfig = NewViperConfiguration(result, configPath, DefaultSettingsBundleName, span)
@@ -48,20 +56,35 @@ func NewSchemaResolvers(observatory observe.Observatory, configPath ConfigPathPr
 	result.simulatedSession = NewSimulatedSession(DefaultSettingsBundleName)
 	result.sessions = make(AuthenticatedSessionsMap)
 	result.sessions[result.simulatedSession.GetAuthenticatedSessionID()] = result.simulatedSession
+
+	result.mutators = new(mutation)
+	result.mutators.resolver = result
+
+	result.queries = new(query)
+	result.queries.resolver = result
+
 	return result
 }
 
-func (sr *SchemaResolvers) DefaultConfiguration() *Configuration {
-	return sr.defaultConfig
+func (r *Resolver) Mutation() schema.MutationResolver {
+	return r.mutators
 }
 
-func (sr *SchemaResolvers) ValidateAuthorization(ctx context.Context, authorization schema.AuthorizationInput) (schema.AuthenticatedSession, error) {
-	span, ctx := sr.observatory.StartTraceFromContext(ctx, "ValidateSession")
+func (r *Resolver) Query() schema.QueryResolver {
+	return r.queries
+}
+
+func (r *Resolver) DefaultConfiguration() *Configuration {
+	return r.defaultConfig
+}
+
+func (r *Resolver) ValidateAuthorization(ctx context.Context, authorization schema.AuthorizationInput) (schema.AuthenticatedSession, error) {
+	span, ctx := r.observatory.StartTraceFromContext(ctx, "ValidateSession")
 	defer span.Finish()
 
-	session := sr.sessions[*authorization.SessionID]
+	session := r.sessions[*authorization.SessionID]
 	if session == nil {
-		error := fmt.Errorf("Session '%v' is invalid, %d available", *authorization.SessionID, len(sr.sessions))
+		error := fmt.Errorf("Session '%v' is invalid, %d available", *authorization.SessionID, len(r.sessions))
 		opentrext.Error.Set(span, true)
 		span.LogFields(log.Error(error))
 		return nil, error
@@ -69,13 +92,13 @@ func (sr *SchemaResolvers) ValidateAuthorization(ctx context.Context, authorizat
 	return session, nil
 }
 
-func (sr *SchemaResolvers) ValidatePrivilegedAuthorization(ctx context.Context, authorization schema.PrivilegedAuthorizationInput) (schema.AuthenticatedSession, error) {
-	span, ctx := sr.observatory.StartTraceFromContext(ctx, "ValidateSuperUserSession")
+func (r *Resolver) ValidatePrivilegedAuthorization(ctx context.Context, authorization schema.PrivilegedAuthorizationInput) (schema.AuthenticatedSession, error) {
+	span, ctx := r.observatory.StartTraceFromContext(ctx, "ValidateSuperUserSession")
 	defer span.Finish()
 
-	session := sr.sessions[*authorization.SessionID]
+	session := r.sessions[*authorization.SessionID]
 	if session == nil {
-		error := fmt.Errorf("Super user session '%v' is invalid, %d available", *authorization.SessionID, len(sr.sessions))
+		error := fmt.Errorf("Super user session '%v' is invalid, %d available", *authorization.SessionID, len(r.sessions))
 		opentrext.Error.Set(span, true)
 		span.LogFields(log.Error(error))
 		return nil, error
@@ -84,58 +107,58 @@ func (sr *SchemaResolvers) ValidatePrivilegedAuthorization(ctx context.Context, 
 }
 
 // Query_asymmetricCryptoPublicKey returns the public key in JWTs 'kid' header
-func (sr *SchemaResolvers) Query_asymmetricCryptoPublicKey(ctx context.Context, claimType schema.AuthorizationClaimType, keyId schema.AsymmetricCryptoPublicKeyName) (schema.AuthorizationClaimCryptoKey, error) {
+func (q *query) AsymmetricCryptoPublicKey(ctx context.Context, claimType schema.AuthorizationClaimType, keyId schema.AsymmetricCryptoPublicKeyName) (schema.AuthorizationClaimCryptoKey, error) {
 	return nil, errors.New("Not implemented yet")
 }
 
 // Query_asymmetricCryptoPublicKeys returns the JWT public keys used by this service
-func (sr *SchemaResolvers) Query_asymmetricCryptoPublicKeys(ctx context.Context, claimType *schema.AuthorizationClaimType) ([]*schema.AuthorizationClaimCryptoKey, error) {
+func (q *query) AsymmetricCryptoPublicKeys(ctx context.Context, claimType *schema.AuthorizationClaimType) ([]*schema.AuthorizationClaimCryptoKey, error) {
 	return nil, errors.New("Not implemented yet")
 }
 
-func (sr *SchemaResolvers) Query_settingsBundles(ctx context.Context, authorization schema.PrivilegedAuthorizationInput) ([]*schema.SettingsBundle, error) {
-	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_configs")
+func (q *query) SettingsBundles(ctx context.Context, authorization schema.PrivilegedAuthorizationInput) ([]*schema.SettingsBundle, error) {
+	span, ctx := q.resolver.observatory.StartTraceFromContext(ctx, "Query_configs")
 	defer span.Finish()
 
-	_, sessErr := sr.ValidatePrivilegedAuthorization(ctx, authorization)
+	_, sessErr := q.resolver.ValidatePrivilegedAuthorization(ctx, authorization)
 	if sessErr != nil {
 		return nil, sessErr
 	}
 
-	result := make([]*schema.SettingsBundle, 0, len(sr.configs))
-	for _, value := range sr.configs {
+	result := make([]*schema.SettingsBundle, 0, len(q.resolver.configs))
+	for _, value := range q.resolver.configs {
 		result = append(result, value.settings)
 	}
 	return result, nil
 }
 
 // Query_config implements GraphQL query endpoint
-func (sr *SchemaResolvers) Query_settingsBundle(ctx context.Context, authorization schema.PrivilegedAuthorizationInput, name schema.SettingsBundleName) (*schema.SettingsBundle, error) {
-	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_config")
+func (q *query) SettingsBundle(ctx context.Context, authorization schema.PrivilegedAuthorizationInput, name schema.SettingsBundleName) (*schema.SettingsBundle, error) {
+	span, ctx := q.resolver.observatory.StartTraceFromContext(ctx, "Query_config")
 	defer span.Finish()
 
-	_, sessErr := sr.ValidatePrivilegedAuthorization(ctx, authorization)
+	_, sessErr := q.resolver.ValidatePrivilegedAuthorization(ctx, authorization)
 	if sessErr != nil {
 		return nil, sessErr
 	}
 
-	config := sr.configs[name]
+	config := q.resolver.configs[name]
 	if config != nil {
 		return config.settings, nil
 	}
 	return nil, nil
 }
 
-func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization schema.AuthorizationInput, text schema.LargeText) (*schema.HarvestedResources, error) {
-	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Query_urlsInText")
+func (q *query) UrlsInText(ctx context.Context, authorization schema.AuthorizationInput, text schema.LargeText) (*schema.HarvestedResources, error) {
+	span, ctx := q.resolver.observatory.StartTraceFromContext(ctx, "Query_urlsInText")
 	defer span.Finish()
 
-	authSess, sessErr := sr.ValidateAuthorization(ctx, authorization)
+	authSess, sessErr := q.resolver.ValidateAuthorization(ctx, authorization)
 	if sessErr != nil {
 		return nil, sessErr
 	}
 
-	conf := sr.configs[authSess.GetSettingsBundleName()]
+	conf := q.resolver.configs[authSess.GetSettingsBundleName()]
 	if conf == nil {
 		error := fmt.Errorf("Unable to run query: config '%s' not found", authSess.GetSettingsBundleName())
 		opentrext.Error.Set(span, true)
@@ -150,15 +173,15 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization s
 	for _, res := range r.Resources {
 		isURLValid, isDestValid := res.IsValid()
 		if !isURLValid {
-			result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: "Invalid URL"})
+			result.Invalid = append(result.Invalid, &schema.UnharvestedResource{URL: schema.URLText(res.OriginalURLText()), Reason: "Invalid URL"})
 			continue
 		}
 		if !isDestValid {
 			isIgnored, ignoreReason := res.IsIgnored()
 			if isIgnored {
-				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: schema.SmallText(fmt.Sprintf("Invalid URL Destination: %v", ignoreReason))})
+				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{URL: schema.URLText(res.OriginalURLText()), Reason: schema.SmallText(fmt.Sprintf("Invalid URL Destination: %v", ignoreReason))})
 			} else {
-				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{Url: schema.URLText(res.OriginalURLText()), Reason: schema.SmallText("Invalid URL Destination: unkown reason")})
+				result.Invalid = append(result.Invalid, &schema.UnharvestedResource{URL: schema.URLText(res.OriginalURLText()), Reason: schema.SmallText("Invalid URL Destination: unkown reason")})
 			}
 			continue
 		}
@@ -197,27 +220,27 @@ func (sr *SchemaResolvers) Query_urlsInText(ctx context.Context, authorization s
 	return result, nil
 }
 
-func (sr *SchemaResolvers) Mutation_establishSimulatedSession(ctx context.Context, authorization schema.PrivilegedAuthorizationInput, config schema.SettingsBundleName) (schema.AuthenticatedSession, error) {
-	return sr.simulatedSession, nil
+func (m *mutation) EstablishSimulatedSession(ctx context.Context, authorization schema.PrivilegedAuthorizationInput, config schema.SettingsBundleName) (schema.AuthenticatedSession, error) {
+	return m.resolver.simulatedSession, nil
 }
 
-func (sr *SchemaResolvers) Mutation_destroySession(ctx context.Context, privilegedAuthz schema.PrivilegedAuthorizationInput, authorization schema.AuthorizationInput) (bool, error) {
+func (m *mutation) DestroySession(ctx context.Context, privilegedAuthz schema.PrivilegedAuthorizationInput, authorization schema.AuthorizationInput) (bool, error) {
 	return false, errors.New("Mutation destroySession not implemented yet")
 }
 
-func (sr *SchemaResolvers) Mutation_destroyAllSessions(ctx context.Context, authorization schema.PrivilegedAuthorizationInput) (schema.AuthenticatedSessionsCount, error) {
+func (m *mutation) DestroyAllSessions(ctx context.Context, authorization schema.PrivilegedAuthorizationInput) (schema.AuthenticatedSessionsCount, error) {
 	return schema.AuthenticatedSessionsCount(0), errors.New("Superuser-only mutation destroyAllSessions not implemented yet")
 }
 
-func (sr *SchemaResolvers) Mutation_refreshSession(ctx context.Context, privilegedAuthz schema.PrivilegedAuthorizationInput, authorization schema.AuthorizationInput) (schema.AuthenticatedSession, error) {
+func (m *mutation) RefreshSession(ctx context.Context, privilegedAuthz schema.PrivilegedAuthorizationInput, authorization schema.AuthorizationInput) (schema.AuthenticatedSession, error) {
 	return nil, errors.New("Mutation refreshSession (for JWT refreshes) not implemented yet")
 }
 
-func (sr *SchemaResolvers) Mutation_saveURLsinText(ctx context.Context, authorization schema.AuthorizationInput, destination schema.StorageDestinationInput, text schema.LargeText) (*schema.HarvestedResources, error) {
-	span, ctx := sr.observatory.StartTraceFromContext(ctx, "Mutation_saveURLsinText")
+func (m *mutation) SaveURLsinText(ctx context.Context, authorization schema.AuthorizationInput, destination schema.StorageDestinationInput, text schema.LargeText) (*schema.HarvestedResources, error) {
+	span, ctx := m.resolver.observatory.StartTraceFromContext(ctx, "Mutation_saveURLsinText")
 	defer span.Finish()
 
-	resources, err := sr.Query_urlsInText(ctx, authorization, text)
+	resources, err := m.resolver.queries.UrlsInText(ctx, authorization, text)
 	if err == nil {
 		switch destination.Collection {
 		case schema.StorageDestinationCollectionSessionPrincipal:

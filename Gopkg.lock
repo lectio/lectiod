@@ -2,6 +2,16 @@
 
 
 [[projects]]
+  name = "github.com/99designs/gqlgen"
+  packages = [
+    "graphql",
+    "graphql/introspection",
+    "handler"
+  ]
+  revision = "42f10ec9122abaac7b9cf03444f35b6c5cb5f53d"
+  version = "0.4.1"
+
+[[projects]]
   name = "github.com/Machiel/slugify"
   packages = ["."]
   revision = "d7f9bcd23b5963c8cf57acbce25b9fec17897c61"
@@ -12,6 +22,12 @@
   packages = ["."]
   revision = "dc2ec5c7ca4d9aae063b79b9f581dd3ea6afd2b2"
   version = "v1.4.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/agnivade/levenshtein"
+  packages = ["."]
+  revision = "3d21ba515fe27b856f230847e856431ae1724adc"
 
 [[projects]]
   name = "github.com/andybalholm/cascadia"
@@ -40,8 +56,8 @@
 [[projects]]
   name = "github.com/gogo/protobuf"
   packages = ["proto"]
-  revision = "7d68e886eac4f7e34d0d82241a6273d6c304c5cf"
-  version = "v1.1.0"
+  revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/google/uuid"
@@ -259,19 +275,18 @@
   version = "v1.5.0"
 
 [[projects]]
-  name = "github.com/vektah/gqlgen"
+  branch = "master"
+  name = "github.com/vektah/gqlparser"
   packages = [
-    "graphql",
-    "handler",
-    "neelance/common",
-    "neelance/errors",
-    "neelance/introspection",
-    "neelance/query",
-    "neelance/schema",
-    "neelance/validation"
+    ".",
+    "ast",
+    "gqlerror",
+    "lexer",
+    "parser",
+    "validator",
+    "validator/rules"
   ]
-  revision = "381b34691fd93829e50ba8821412dc3467ec4821"
-  version = "0.3.0"
+  revision = "d641c37c5dbfcf71ec357ff95ebeed1a0e030d68"
 
 [[projects]]
   branch = "master"
@@ -287,13 +302,13 @@
     "html",
     "html/atom"
   ]
-  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
+  revision = "f4c29de78a2a91c00474a2e689954305c350adf9"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "ac767d655b305d4e9612f5f6e33120b9176c4ad4"
+  revision = "0ffbfd41fbef8ffcf9b62b0b0aa3a5873ed7a4fe"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -333,6 +348,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0e72d53122cf8cc46fb08a6087fe55ac52505c3c31a9f5d684e0c477cd6bf85e"
+  inputs-digest = "011a93350216671556459f472e8f1fbc9b59dff0120d1862f86f4f0416ec2079"
   solver-name = "gps-cdcl"
   solver-version = 1

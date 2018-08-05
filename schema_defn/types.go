@@ -3,7 +3,7 @@ package schema_defn
 import (
 	io "io"
 
-	graphql "github.com/vektah/gqlgen/graphql"
+	graphql "github.com/99designs/gqlgen/graphql"
 )
 
 type NameText string

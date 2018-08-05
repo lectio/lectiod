@@ -2762,6 +2762,7 @@ var parsedSchema = schema.MustParse(`# Style Guide:
 #      interfaces and concrete types.
 # TODO Create common [fragments](https://graphql.org/learn/queries/#fragments) for queries to ease the client side burden 
 #      of typing in common fields and knowing all the various field names.
+# TODO Install schema linter and run for each build and before each git commit
 
 scalar NameText
 scalar SmallText
@@ -2894,6 +2895,7 @@ type Tenant implements Party {
   id: ID!
   name: NameText!
   org: Organization!
+  #TODO add support for subtenants (in case our tenants want their own customers)
 }
 
 # StorageType enumerates the different kinds of storage Lectio supports

@@ -140,6 +140,7 @@ type Tenant implements Party {
   id: ID!
   name: NameText!
   org: Organization!
+  #TODO add support for subtenants (in case our tenants want their own customers)
 }
 
 # StorageType enumerates the different kinds of storage Lectio supports
